@@ -7,18 +7,16 @@
     "test": "illuminati"
   },
   "dependencies": {
-    "diagnostics": "0.0.x",
-    "pagelet": "0.8.x"
+    "pagelet": "0.8.x",
+    "querystring": "0.2.x"
   },
   "devDependencies": {
-    "chai": "1.9.x",
-    "coveralls": "2.10.x",
-    "istanbul": "0.2.x",
-    "mocha": "1.18.x",
-    "mocha-lcov-reporter": "0.0.x",
-    "pre-commit": "0.0.x",
-    "sinon": "1.9.x",
-    "sinon-chai": "2.5.x"
+    "illuminati": "0.0.x",
+    "assume": "0.0.x",
+    "coveralls": "2.11.x",
+    "istanbul": "0.3.x",
+    "mocha": "2.0.x",
+    "mocha-lcov-reporter": "0.0.x"
   },
   "repository": {
     "type": "git",

@@ -116,11 +116,17 @@ Pagelet.extend({
   constructor: function constructor(parent, options) {
     Pagelet.prototype.constructor.call(this, options);
 
+    options = options || {};
+    options.dependencies = options.dependencies || this.dependencies;
+
     //
-    // Store the provided global dependencies and set additional properties.
+    // Store the provided global dependencies.
     //
-    this.dependencies = options.dependencies.join('');
-    this.enchance(parent);
+    if (Array.isArray(options.dependencies)) {
+      this.dependencies = options.dependencies.join('');
+    }
+
+    this.enhance(parent);
   },
 
   /**
@@ -129,12 +135,16 @@ Pagelet.extend({
    * @param {Pagelet} parent Main pagelet.
    * @api private
    */
-  enchance: function enchance(parent) {
+  enhance: function enhance(parent) {
+    var req = this.req || {}
+      , uri = req.uri || {}
+      , query = req.query || {};
+
     //
     // Number of pagelets that should be written, increased with 1 as the parent
     // pagelet itself should be written as well.
     //
-    this.length = parent.pagelets.length + 1;
+    this.length = (parent.pagelets || []).length + 1;
 
     //
     // Name of the parent pagelet, used to set the correct data-pagelet
@@ -147,10 +157,10 @@ Pagelet.extend({
     //
     this.fallback = 'sync' === parent.mode ? script : noscript.replace(
       '{path}',
-      this.req.uri.pathname
+      uri.pathname || 'http://localhost/'
     ).replace(
       '{query}',
-      qs.stringify(this.merge({ no_pagelet_js: 1 }, this.req.query))
+      qs.stringify(this.merge({ no_pagelet_js: 1 }, query))
     );
   }
 }).on(module);
