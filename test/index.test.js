@@ -34,5 +34,5 @@ describe('Boostrap Pagelet', function () {
     assume(Bootstrapper.prototype.name).to.equal('bootstrap');
     assume(Bootstrapper.prototype.name).to.equal(pagelet.name);
     assume(Bootstrapper.prototype.name).to.equal(P.prototype.name);
-  })
+  });
 });
