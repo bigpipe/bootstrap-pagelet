@@ -40,6 +40,9 @@ var script = [
 // - It adds a noscript meta refresh to force a `sync` method which fully
 //   renders the HTML server side.
 //
+// Do NOT change the name of the bootstrap pagelet or BigPipe will not
+// be able to find it in the pagelet collection.
+//
 Pagelet.extend({
   name: 'bootstrap',
   title: 'BigPipe',
