@@ -1,13 +1,13 @@
 describe('Boostrap Pagelet', function () {
-  'use strict'
+  'use strict';
 
   var Pagelet = require('pagelet')
-    , Boostrapper = require('../').extend({ name: 'bootstrapper' })
+    , Bootstrapper = require('../')
     , assume = require('assume')
     , pagelet, P;
 
   beforeEach(function () {
-    P = Boostrapper.extend({
+    P = Bootstrapper.extend({
       description: 'my custom title',
       view: 'fixtures/view.html',
       dependencies: [
@@ -28,4 +28,11 @@ describe('Boostrap Pagelet', function () {
     assume(pagelet.keys).to.include('title');
     assume(pagelet.keys).to.include('description');
   });
+
+  it('has a default name bootstrap', function () {
+    assume(pagelet.name).to.equal('bootstrap');
+    assume(Bootstrapper.prototype.name).to.equal('bootstrap');
+    assume(Bootstrapper.prototype.name).to.equal(pagelet.name);
+    assume(Bootstrapper.prototype.name).to.equal(P.prototype.name);
+  })
 });
