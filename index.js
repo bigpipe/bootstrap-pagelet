@@ -147,7 +147,7 @@ Pagelet.extend({
     // Number of pagelets that should be written, increased with 1 as the parent
     // pagelet itself should be written as well.
     //
-    this.length = (parent.pagelets || []).length + 1;
+    this.length = (parent._children || []).length + 1;
 
     //
     // Name of the parent pagelet, used to set the correct data-pagelet
