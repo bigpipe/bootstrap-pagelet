@@ -105,7 +105,7 @@ Pagelet.extend({
           return memo;
         }, {});
 
-    return this.temper.fetch(this.view).server(data);
+    return this._temper.fetch(this.view).server(data);
   },
 
   /**
