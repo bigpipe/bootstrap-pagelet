@@ -16,7 +16,7 @@ describe('Boostrap Pagelet', function () {
       ]
     });
 
-    pagelet = new P(new Pagelet);
+    pagelet = new P({ params: {} });
   });
 
   afterEach(function each() {

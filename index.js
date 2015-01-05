@@ -55,12 +55,6 @@ Pagelet.extend({
   view: 'view.html',
 
   //
-  // Name of the main or base pagelet. This pagelet was discovered by routing as
-  // the parent of all child pagelets.
-  //
-  parent: '',
-
-  //
   // Add a meta charset so the browser knows the encoding of the content so it
   // will not buffer it up in memory to make an educated guess. This will ensure
   // that the HTML is shown as fast as possible.
@@ -87,7 +81,7 @@ Pagelet.extend({
   //
   keys: [
     'title', 'description', 'keywords', 'robots', 'favicon', 'author',
-    'dependencies', 'fallback', 'charset', 'parent', 'length', 'id'
+    'dependencies', 'fallback', 'charset', '_parent', 'length', 'id'
   ],
 
   /**
@@ -112,11 +106,10 @@ Pagelet.extend({
    * Extend the default constructor of the pagelet to set additional defaults
    * based on the provided options.
    *
-   * @param {Pagelet} parent Main pagelet.
-   * @param {Object} options
+   * @param {Object} options Optional options.
    * @api public
    */
-  constructor: function constructor(parent, options) {
+  constructor: function constructor(options) {
     Pagelet.prototype.constructor.call(this, options);
 
     options = options || {};
@@ -129,17 +122,7 @@ Pagelet.extend({
       this.dependencies = options.dependencies.join('');
     }
 
-    this.enhance(parent);
-  },
-
-  /**
-   * Set specific options on the bootstrap paglet.
-   *
-   * @param {Pagelet} parent Main pagelet.
-   * @api private
-   */
-  enhance: function enhance(parent) {
-    var req = this.req || {}
+    var req = options.req || {}
       , uri = req.uri || {}
       , query = req.query || {};
 
@@ -147,18 +130,12 @@ Pagelet.extend({
     // Number of pagelets that should be written, increased with 1 as the parent
     // pagelet itself should be written as well.
     //
-    this.length = (parent._children || []).length + 1;
-
-    //
-    // Name of the parent pagelet, used to set the correct data-pagelet
-    // property on the `body` element.
-    //
-    this.parent = parent.name;
+    this.length = options.children++;
 
     //
     // Set the default fallback script, see explanation above.
     //
-    this.fallback = 'sync' === parent.mode ? script : noscript.replace(
+    this.fallback = 'sync' === options.mode ? script : noscript.replace(
       '{path}',
       uri.pathname || 'http://localhost/'
     ).replace(
