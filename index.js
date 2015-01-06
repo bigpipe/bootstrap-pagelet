@@ -67,13 +67,6 @@ Pagelet.extend({
   length: 0,
 
   //
-  // Set a number of properties on the response as it is available to all pagelets.
-  // This will ensure the correct amount of pagelets are processed and that the
-  // entire queue is written to the client.
-  //
-  _queue: [],
-
-  //
   // Set of keys used by the HTML renderer to deduce the required data.
   //
   keys: [
@@ -108,7 +101,7 @@ Pagelet.extend({
    * @api public
    */
   queue: function queue(html, n) {
-    this.length -= n || 1;
+    this.length -= 'number' === typeof n ? n : 1;
     this._queue.push(html);
 
     return this;
@@ -165,11 +158,17 @@ Pagelet.extend({
       , query = req.query || {};
 
     //
-    // Number of child pagelets that should be written, increased
-    // with 2 as the parent pagelet and bootstrap itself are written
-    // as part of the queue well.
+    // Set a number of properties on the response as it is available to all pagelets.
+    // This will ensure the correct amount of pagelets are processed and that the
+    // entire queue is written to the client.
     //
-    this.length = options.children + 2;
+    this._queue = [];
+
+    //
+    // Number of child pagelets that should be written, increased
+    // with 1 as the parent pagelet is part of the queue.
+    //
+    this.length = options.children + 1;
 
     //
     // Set the default fallback script, see explanation above.
@@ -187,6 +186,6 @@ Pagelet.extend({
     // push out these headers immediatly
     //
     this.debug('Queueing initial headers');
-    this.queue(this.render());
+    this.queue(this.render(), 0);
   }
 }).on(module);

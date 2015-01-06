@@ -12,7 +12,7 @@ describe('Boostrap Pagelet', function () {
       description: 'my custom title',
       dependencies: [
         '<script src="http://code.jquery.com/jquery-2.0.0.js"></script>',
-        '<script src="fixtures/custom.js"></script>"'
+        '<script src="fixtures/custom.js"></script>'
       ]
     });
 
@@ -43,7 +43,29 @@ describe('Boostrap Pagelet', function () {
     assume(pagelet.keys).to.include('_parent');
     assume(pagelet.keys).to.include('length');
     assume(pagelet.keys).to.include('id');
-  })
+  });
+
+  describe('#constructor', function () {
+    it('sets amount of pagelets to be processed from options', function () {
+      var amount = 7;
+      pagelet = new P({ params: {}, temper: new Temper, children: amount });
+
+      assume(pagelet.length).to.equal(amount + 1);
+      assume(pagelet.length).to.be.a('number');
+    });
+
+    it('queues the initial HTML headers', function () {
+      assume(pagelet._queue).to.be.an('array');
+      assume(pagelet._queue.length).to.equal(1);
+      assume(pagelet._queue[0]).to.include('<meta charset="utf-8">')
+    });
+
+    it('resolves dependencies to a string', function () {
+      assume(pagelet.dependencies).to.be.a('string');
+      assume(pagelet.dependencies).to.include('<script src="http://code.jquery.com/jquery-2.0.0.js"></script>');
+      assume(pagelet.dependencies).to.include('<script src="fixtures/custom.js"></script>');
+    });
+  });
 
   describe('#render', function () {
     it('is a function', function () {
