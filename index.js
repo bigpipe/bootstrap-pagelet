@@ -71,9 +71,8 @@ Pagelet.extend({
   // This will ensure the correct amount of pagelets are processed and that the
   // entire queue is written to the client.
   //
-  flushed: false,
   ended: false,
-  queue: [],
+  _queue: [],
   n: 0,
 
   //
@@ -100,6 +99,57 @@ Pagelet.extend({
         }, {});
 
     return this._temper.fetch(this.view).server(data);
+  },
+
+  /**
+   * Add fragment of HTML to the queue.
+   *
+   * @param {String} html Output to be send to the response
+   * @returns {Pagelet} this
+   * @api public
+   */
+  queue: function queue(html) {
+    this._queue.push(html);
+    return this;
+  },
+
+  /**
+   * Adds initial HTML headers to the queue. This method is
+   * triggered by the first flush to the response.
+   *
+   * @returns {Pagelet} this
+   * @api private
+   */
+  headers: function headers() {
+    this.debug('Queueing initial headers');
+    return this.queue(this.html());
+  },
+
+  /**
+   * Flush all queued rendered pagelets to the request object.
+   *
+   * @returns {Pagelet} this
+   * @api private
+   */
+  flush: function flush() {
+    this.emit('flush');
+    if (!this._queue.length) return this;
+
+    var data = new Buffer(this._queue.join(''), 'utf-8');
+    this._queue.length = 0;
+
+    if (data.length) {
+      this.debug('Writing %d bytes to response', data.length);
+      this._res.write(data, this.emits('flushed'));
+    }
+
+    //
+    // Optional write confirmation, it got added in more recent versions of
+    // node, so if it's not supported we're just going to call the callback
+    // our selfs.
+    //
+    if (this._res.write.length !== 3 || !data.length) this.emit('flushed');
+    return this;
   },
 
   /**
@@ -131,6 +181,11 @@ Pagelet.extend({
     // pagelet itself should be written as well.
     //
     this.length = options.children++;
+
+    //
+    // The initial flush will trigger writing the bootstrap HTML.
+    //
+    this.once('flush', this.headers, this);
 
     //
     // Set the default fallback script, see explanation above.
