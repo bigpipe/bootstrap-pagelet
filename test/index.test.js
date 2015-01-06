@@ -1,9 +1,12 @@
 describe('Boostrap Pagelet', function () {
   'use strict';
 
+  function noop() {}
+
   var Pagelet = require('pagelet')
     , Bootstrapper = require('../')
     , assume = require('assume')
+    , temper = { fetch: function noop() { return { server: noop }}}
     , pagelet, P;
 
   beforeEach(function () {
@@ -16,7 +19,7 @@ describe('Boostrap Pagelet', function () {
       ]
     });
 
-    pagelet = new P({ params: {} });
+    pagelet = new P({ params: {}, temper: temper });
   });
 
   afterEach(function each() {

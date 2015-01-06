@@ -71,9 +71,7 @@ Pagelet.extend({
   // This will ensure the correct amount of pagelets are processed and that the
   // entire queue is written to the client.
   //
-  ended: false,
   _queue: [],
-  n: 0,
 
   //
   // Set of keys used by the HTML renderer to deduce the required data.
@@ -91,7 +89,7 @@ Pagelet.extend({
    * @return {String} Generated template.
    * @api public
    */
-  html: function html() {
+  render: function render() {
     var bootstrap = this
       , data = this.keys.reduce(function reduce(memo, key) {
           memo[key] = bootstrap[key];
@@ -105,24 +103,15 @@ Pagelet.extend({
    * Add fragment of HTML to the queue.
    *
    * @param {String} html Output to be send to the response
+   * @param {Number} n Optional amount of pagelets that were queued.
    * @returns {Pagelet} this
    * @api public
    */
-  queue: function queue(html) {
+  queue: function queue(html, n) {
+    this.length -= n || 1;
     this._queue.push(html);
-    return this;
-  },
 
-  /**
-   * Adds initial HTML headers to the queue. This method is
-   * triggered by the first flush to the response.
-   *
-   * @returns {Pagelet} this
-   * @api private
-   */
-  headers: function headers() {
-    this.debug('Queueing initial headers');
-    return this.queue(this.html());
+    return this;
   },
 
   /**
@@ -132,7 +121,6 @@ Pagelet.extend({
    * @api private
    */
   flush: function flush() {
-    this.emit('flush');
     if (!this._queue.length) return this;
 
     var data = new Buffer(this._queue.join(''), 'utf-8');
@@ -140,7 +128,7 @@ Pagelet.extend({
 
     if (data.length) {
       this.debug('Writing %d bytes to response', data.length);
-      this._res.write(data, this.emits('flushed'));
+      this._res.write(data, this.emits('flush'));
     }
 
     //
@@ -148,7 +136,7 @@ Pagelet.extend({
     // node, so if it's not supported we're just going to call the callback
     // our selfs.
     //
-    if (this._res.write.length !== 3 || !data.length) this.emit('flushed');
+    if (this._res.write.length !== 3 || !data.length) this.emit('flush');
     return this;
   },
 
@@ -177,15 +165,11 @@ Pagelet.extend({
       , query = req.query || {};
 
     //
-    // Number of pagelets that should be written, increased with 1 as the parent
-    // pagelet itself should be written as well.
+    // Number of child pagelets that should be written, increased
+    // with 2 as the parent pagelet and bootstrap itself are written
+    // as part of the queue well.
     //
-    this.length = options.children++;
-
-    //
-    // The initial flush will trigger writing the bootstrap HTML.
-    //
-    this.once('flush', this.headers, this);
+    this.length = options.children + 2;
 
     //
     // Set the default fallback script, see explanation above.
@@ -197,5 +181,12 @@ Pagelet.extend({
       '{query}',
       qs.stringify(this.merge({ no_pagelet_js: 1 }, query))
     );
+
+    //
+    // Adds initial HTML headers to the queue. The first flush will
+    // push out these headers immediatly
+    //
+    this.debug('Queueing initial headers');
+    this.queue(this.render());
   }
 }).on(module);
