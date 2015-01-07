@@ -116,7 +116,7 @@ Pagelet.extend({
   flush: function flush() {
     if (!this._queue.length) return this;
 
-    var data = new Buffer(this._queue.join(''), 'utf-8');
+    var data = new Buffer(this._queue.join(''), this.charset);
     this._queue.length = 0;
 
     if (data.length) {
@@ -168,11 +168,12 @@ Pagelet.extend({
     // Number of child pagelets that should be written, increased
     // with 1 as the parent pagelet is part of the queue.
     //
-    this.length = options.children + 1;
+    this.length = (options.children || 0) + 1;
 
     //
     // Set the default fallback script, see explanation above.
     //
+    this.debug('Initialized in %s mode', options.mode);
     this.fallback = 'sync' === options.mode ? script : noscript.replace(
       '{path}',
       uri.pathname || 'http://localhost/'
