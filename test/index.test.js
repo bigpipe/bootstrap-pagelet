@@ -59,9 +59,9 @@ describe('Boostrap Pagelet', function () {
   describe('#constructor', function () {
     it('sets amount of pagelets to be processed from options', function () {
       var amount = 7;
-      pagelet = new P({ temper: new Temper, children: amount });
+      pagelet = new P({ temper: new Temper, queue: amount });
 
-      assume(pagelet.length).to.equal(amount + 1);
+      assume(pagelet.length).to.equal(amount);
       assume(pagelet.length).to.be.a('number');
     });
 
@@ -73,9 +73,10 @@ describe('Boostrap Pagelet', function () {
     });
 
     it('initial HTML will not substract from count', function () {
+      //pagelet.length = 12;
       assume(pagelet._queue.length).to.equal(1);
       assume(pagelet._queue[0]).to.include('<meta charset="utf-8">');
-      assume(pagelet.length).to.equal(1);
+      assume(pagelet.length).to.equal(0);
     });
 
     it('resolves dependencies to a string', function () {

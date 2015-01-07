@@ -62,7 +62,8 @@ Pagelet.extend({
   charset: 'utf-8',
 
   //
-  // Used for proper client side library initialization.
+  // Used for proper client side library initialization. Overrules the
+  // default pagelet children length getter.
   //
   length: 0,
 
@@ -165,10 +166,9 @@ Pagelet.extend({
     this._queue = [];
 
     //
-    // Number of child pagelets that should be written, increased
-    // with 1 as the parent pagelet is part of the queue.
+    // Number of child pagelets that should be written.
     //
-    this.length = (options.children || 0) + 1;
+    this.length = options.queue || 0;
 
     //
     // Set the default fallback script, see explanation above.
