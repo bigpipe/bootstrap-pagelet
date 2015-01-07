@@ -4,8 +4,10 @@
   "description": "Base Pagelet that is responsible for bootstrapping the client side of BigPipe",
   "main": "index.js",
   "scripts": {
-    "test": "illuminati",
-    "coverage": "NODE_ENV=test istanbul cover ./node_modules/.bin/_mocha $(find test -name '*.test.js') --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js || true && rm -rf ./coverage"
+    "test": "mocha $(find test -name '*.test.js')",
+    "watch": "mocha --watch $(find test -name '*.test.js')",
+    "coverage": "istanbul cover ./node_modules/.bin/_mocha -- $(find test -name '*.test.js')",
+    "test-travis": "istanbul cover node_modules/.bin/_mocha --report lcovonly -- $(find test -name '*.test.js')"
   },
   "dependencies": {
     "pagelet": "0.8.x",
@@ -14,11 +16,10 @@
   "devDependencies": {
     "assume": "0.0.x",
     "coveralls": "2.11.x",
-    "illuminati": "0.0.x",
     "istanbul": "0.3.x",
     "mocha": "2.0.x",
     "mocha-lcov-reporter": "0.0.x",
-    "temper": "^0.2.2"
+    "temper": "0.2.x"
   },
   "repository": {
     "type": "git",
