@@ -10,7 +10,7 @@
     "test-travis": "istanbul cover node_modules/.bin/_mocha --report lcovonly -- $(find test -name '*.test.js')"
   },
   "dependencies": {
-    "pagelet": "0.8.x",
+    "pagelet": "1.0.x",
     "querystring": "0.2.x"
   },
   "devDependencies": {

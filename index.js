@@ -120,7 +120,7 @@ Pagelet.extend({
     this._queue.length = 0;
 
     if (data.length) {
-      this.debug('Writing %d bytes to response', data.length);
+      this.debug('Writing %d bytes of %s to response', data.length, this.charset);
       this._res.write(data, this.emits('flush'));
     }
 
