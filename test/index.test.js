@@ -16,7 +16,7 @@ describe('Boostrap Pagelet', function () {
       ]
     });
 
-    pagelet = new P({ params: {}, temper: new Temper });
+    pagelet = new P({ temper: new Temper });
   });
 
   afterEach(function each() {
@@ -59,7 +59,7 @@ describe('Boostrap Pagelet', function () {
   describe('#constructor', function () {
     it('sets amount of pagelets to be processed from options', function () {
       var amount = 7;
-      pagelet = new P({ params: {}, temper: new Temper, children: amount });
+      pagelet = new P({ temper: new Temper, children: amount });
 
       assume(pagelet.length).to.equal(amount + 1);
       assume(pagelet.length).to.be.a('number');
@@ -84,13 +84,36 @@ describe('Boostrap Pagelet', function () {
       assume(pagelet.dependencies).to.include('<script src="fixtures/custom.js"></script>');
     });
 
+    it('will leave dependencies string intact', function () {
+      pagelet = new (P.extend({
+        dependencies: '<script src="http://code.jquery.com/jquery-2.0.0.js"></script>'
+      }).on(module))({ temper: new Temper });
+
+      assume(pagelet.dependencies).to.be.a('string');
+      assume(pagelet.dependencies).to.equal('<script src="http://code.jquery.com/jquery-2.0.0.js"></script>');
+    });
+
+    it('expects temper instance to be provided', function () {
+      function notemper() {
+        try {
+          return new P;
+        } catch (e) {
+          return e;
+        }
+      }
+
+      var result = notemper();
+      assume(result).to.be.instanceof(Error);
+      assume(result.message).to.equal("Cannot call method 'fetch' of undefined")
+    });
+
     it('sets the correct fallback script', function () {
       assume(pagelet.fallback).to.be.a('string');
       assume(pagelet.fallback).to.include(
         '<meta http-equiv="refresh" content="0; URL=http://localhost/?no_pagelet_js=1">'
       );
 
-      pagelet = new P({ params: {}, temper: new Temper, mode: 'sync' });
+      pagelet = new P({ temper: new Temper, mode: 'sync' });
       assume(pagelet.fallback).to.be.a('string');
       assume(pagelet.fallback).to.include(
         'if (~location.search.indexOf("no_pagelet_js=1"))location.href = location.href.replace(location.search, "")'
@@ -99,7 +122,6 @@ describe('Boostrap Pagelet', function () {
 
     it('provides the current pathname and querystring to the async fallback script', function () {
       pagelet = new P({
-        params: {},
         temper: new Temper,
         req: {
           query: { test: 'req' },
@@ -147,7 +169,7 @@ describe('Boostrap Pagelet', function () {
     it('will use the provided view', function () {
       pagelet = new (P.extend({
         view: 'fixtures/view.html'
-      }).on(module))({ params: {}, temper: new Temper });
+      }).on(module))({ temper: new Temper });
 
       var html = pagelet.render();
 
@@ -197,7 +219,6 @@ describe('Boostrap Pagelet', function () {
 
     beforeEach(function () {
       pagelet = new P({
-        params: {},
         temper: new Temper,
         res: {
           write: function (data, encoding, done) {
@@ -260,6 +281,12 @@ describe('Boostrap Pagelet', function () {
 
       pagelet.once('flush', done);
       assume(pagelet.flush()).to.equal(pagelet);
+    });
+
+    it('always emits even if no data is written', function (done) {
+      pagelet._queue = [void 0];
+      pagelet.once('flush', done);
+      pagelet.flush();
     });
   });
 });
