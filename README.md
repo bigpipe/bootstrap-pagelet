@@ -94,16 +94,16 @@ var html = bootstrap.render();
 
 **private**, _returns Pagelet_.
 
-Push a chunk of HTML of the queue to be flushed. This function will
-also increase the interal counter of the number of flushed pagelets.
-By default the counter is increased with 1, but this a specific
-_Number_ can be provided as well.
+Push a chunk of HTML on the queue to be flushed. This function will
+also decrease the internal counter of the number of flushed pagelets.
+By default the counter is decreased with 1, but a specific _Number_
+can be provided as well.
 
 ```js
 bootstrap.queue('chunk of html', 2);
 ```
 
-#### Bootstrap.flush()
+#### Bootstrap.flush(
 
 **private**, _returns Pagelet_.
 
