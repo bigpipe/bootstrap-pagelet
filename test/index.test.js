@@ -73,10 +73,11 @@ describe('Boostrap Pagelet', function () {
     });
 
     it('initial HTML will not substract from count', function () {
-      //pagelet.length = 12;
+      pagelet.length = 12;
+
       assume(pagelet._queue.length).to.equal(1);
       assume(pagelet._queue[0]).to.include('<meta charset="utf-8">');
-      assume(pagelet.length).to.equal(0);
+      assume(pagelet.length).to.equal(12);
     });
 
     it('resolves dependencies to a string', function () {
