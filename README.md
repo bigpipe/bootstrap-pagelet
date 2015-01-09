@@ -68,7 +68,7 @@ only used internally. There is rarely a reason to call these methods.
 **public**, _returns Pagelet_.
 
 The bootstrap constructor expects several options to be provided, these
-include: `queue`, `mode`, `req`, `res` and `pipe`. The last options is
+include: `queue`, `mode`, `req`, `res` and `pipe`. The last option is
 a reference to the [BigPipe] instance, mainly to ensure the same [Temper]
 instance is re-used. All code examples assume your file is setup as:
 
@@ -103,7 +103,7 @@ can be provided as well.
 bootstrap.queue('chunk of html', 2);
 ```
 
-#### Bootstrap.flush(
+#### Bootstrap.flush()
 
 **private**, _returns Pagelet_.
 
