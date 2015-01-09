@@ -29,6 +29,13 @@ describe('Boostrap Pagelet', function () {
     assume(pagelet.keys).to.include('description');
   });
 
+  it('is an extendible constructor', function () {
+    assume(Bootstrapper).to.be.a('function');
+    assume(Bootstrapper.extend).to.be.a('function');
+    assume(pagelet).to.be.instanceof(Bootstrapper);
+    assume(pagelet).to.be.instanceof(Pagelet);
+  });
+
   it('has a default name bootstrap', function () {
     assume(pagelet.name).to.equal('bootstrap');
     assume(Bootstrapper.prototype.name).to.equal('bootstrap');
@@ -36,7 +43,7 @@ describe('Boostrap Pagelet', function () {
     assume(Bootstrapper.prototype.name).to.equal(P.prototype.name);
   });
 
-  it('has default values ', function () {
+  it('has default values', function () {
     assume(pagelet.title).to.equal('BigPipe');
     assume(pagelet.description).to.equal('my custom description');
     assume(pagelet.keywords.join()).to.equal('BigPipe,pagelets,bootstrap');
@@ -106,7 +113,7 @@ describe('Boostrap Pagelet', function () {
 
       var result = notemper();
       assume(result).to.be.instanceof(Error);
-      assume(result.message).to.equal("Cannot call method 'fetch' of undefined")
+      assume(result.message).to.equal("Cannot call method 'fetch' of undefined");
     });
 
     it('sets the correct fallback script', function () {
