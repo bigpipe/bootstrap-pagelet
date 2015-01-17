@@ -132,18 +132,20 @@ Pagelet.extend({
    * @api private
    */
   flush: function flush(done) {
-    if (this._res.finished) return done(
-      new Error('Response was closed, unable to flush content')
-    );
+    this.once('done', done);
 
-    if (!this._queue.length) return done();
+    if (this._res.finished) {
+      this.emit('done', new Error('Response was closed, unable to flush content'));
+    }
+
+    if (!this._queue.length) this.emit('done');
 
     var data = new Buffer(this.join(), this.charset);
     this._queue.length = 0;
 
     if (data.length) {
       this.debug('Writing %d bytes of %s to response', data.length, this.charset);
-      this._res.write(data, done);
+      this._res.write(data, this.emits('done'));
     }
 
     //
@@ -151,7 +153,7 @@ Pagelet.extend({
     // node, so if it's not supported we're just going to call the callback
     // our selfs.
     //
-    if (this._res.write.length !== 3 || !data.length) return done();
+    if (this._res.write.length !== 3 || !data.length) this.emit('done');
   },
 
   /**
