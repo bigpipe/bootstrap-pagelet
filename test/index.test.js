@@ -76,15 +76,8 @@ describe('Boostrap Pagelet', function () {
       assume(Bootstrapper.prototype._queue).to.equal(undefined);
       assume(pagelet._queue).to.be.an('array');
       assume(pagelet._queue.length).to.equal(1);
-      assume(pagelet._queue[0]).to.include('<meta charset="utf-8">');
-    });
-
-    it('initial HTML will not substract from count', function () {
-      pagelet.length = 12;
-
-      assume(pagelet._queue.length).to.equal(1);
-      assume(pagelet._queue[0]).to.include('<meta charset="utf-8">');
-      assume(pagelet.length).to.equal(12);
+      assume(pagelet._queue[0].name).to.equal('bootstrap');
+      assume(pagelet._queue[0].view).to.include('<meta charset="utf-8">');
     });
 
     it('resolves dependencies to a string', function () {
@@ -196,35 +189,107 @@ describe('Boostrap Pagelet', function () {
     it('adds html to the internal queue', function () {
       pagelet._queue.length = 0;
 
-      pagelet.queue('<h1>some html</h1>');
+      pagelet.queue('test', '<h1>some html</h1>');
       assume(pagelet._queue.length).to.equal(1);
-      assume(pagelet._queue[0]).to.equal('<h1>some html</h1>');
+      assume(pagelet._queue[0].name).to.equal('test');
+      assume(pagelet._queue[0].view).to.equal('<h1>some html</h1>');
 
-      pagelet.queue('<p>some more</p>');
+      pagelet.queue('test', '<p>some more</p>');
       assume(pagelet._queue.length).to.equal(2);
-      assume(pagelet._queue[1]).to.equal('<p>some more</p>');
+      assume(pagelet._queue[1].view).to.equal('<p>some more</p>');
     });
 
     it('substracts one from count', function () {
       pagelet.length = 5;
 
-      pagelet.queue('<p>some more</p>');
+      pagelet.queue('test', '<p>some more</p>');
       assume(pagelet.length).to.equal(4);
 
-      pagelet.queue('<p>some more</p>', 'not a number');
+      pagelet.queue('test', '<p>some more</p>', 'not a number');
       assume(pagelet.length).to.equal(3);
     });
+  });
 
-    it('substracts provided number from count', function () {
-      pagelet.length = 7;
+  describe('#join', function () {
+    it('is a function', function () {
+      assume(pagelet.join).is.a('function');
+      assume(pagelet.join.length).to.equal(0);
+    });
 
-      pagelet.queue('<p>some more</p>', 3);
-      assume(pagelet.length).to.equal(4);
+    it('joins the HTML in the queue', function () {
+      pagelet._queue = [
+        { name: '1', view: '<h1>first title</h1>' },
+        { name: '2', view: '<h2>second title</h2>' }
+      ];
+
+      var result = pagelet.join();
+      assume(result).to.be.a('string');
+      assume(result).to.equal('<h1>first title</h1><h2>second title</h2>');
+    });
+
+    it('will not join undefined or falsy views', function () {
+      pagelet._queue = [
+        { name: '1', view: void 0 },
+        { name: '2', view: '<h2>second title</h2>' }
+      ];
+
+      var result = pagelet.join();
+      assume(result).to.be.a('string');
+      assume(result).to.equal('<h2>second title</h2>');
+    });
+  });
+
+  describe('#reduce', function () {
+    it('is a function', function () {
+      assume(pagelet.reduce).is.a('function');
+      assume(pagelet.reduce.length).to.equal(0);
+    });
+
+    it('reduces the elements inside the queue to a single element', function () {
+      pagelet._queue = [
+        { name: '1', view: '<h1>first title <div data-pagelet="2"></div></h1>' },
+        { name: '2', view: '<h2>second title</h2>' }
+      ];
+
+      pagelet.reduce();
+      assume(pagelet._queue.length).to.equal(1);
+      assume(pagelet._queue[0].view).to.equal(
+        '<h1>first title <div data-pagelet="2"><h2>second title</h2></div></h1>'
+      );
+    });
+
+    it('reduces multiple occurences of the same data-pagelet attribute', function () {
+      pagelet._queue = [
+        { name: '1', view: '<h1>first title <div data-pagelet="2"></div><div data-pagelet="2"></div></h1>' },
+        { name: '2', view: '<h2>second title</h2>' }
+      ];
+
+      pagelet.reduce();
+      assume(pagelet._queue.length).to.equal(1);
+      assume(pagelet._queue[0].view).to.equal(
+        '<h1>first title <div data-pagelet="2"><h2>second title</h2></div><div data-pagelet="2"><h2>second title</h2></div></h1>'
+      );
+    });
+
+    it('requires closing > to find matching element', function () {
+      pagelet._queue = [
+        { name: '1', view: '<h1>first title <div data-pagelet="2"' },
+        { name: '2', view: '<h2>second title</h2>' }
+      ];
+
+      pagelet.reduce();
+      assume(pagelet._queue.length).to.equal(1);
+      assume(pagelet._queue[0].view).to.equal(
+        '<h1>first title <div data-pagelet="2"'
+      );
     });
   });
 
   describe('#flush', function () {
-    var content = '<h1>some content</h1>';
+    var content = {
+      name: 'test',
+      view: '<h1>some content</h1>'
+    };
 
     beforeEach(function () {
       pagelet = new P({
@@ -244,58 +309,63 @@ describe('Boostrap Pagelet', function () {
 
     it('is a function', function () {
       assume(pagelet.flush).is.a('function');
-      assume(pagelet.flush.length).to.equal(0);
+      assume(pagelet.flush.length).to.equal(1);
     });
 
-    it('will return early if there is no queue length', function () {
+    it('will return early if there is no queue length', function (done) {
       pagelet._queue.length = 0;
-      assume(pagelet.flush()).to.equal(pagelet);
+      assume(pagelet.flush(done)).to.equal(undefined);
     });
+
+    it('will return early if the response has finished', function (done) {
+      pagelet._res.finished = true;
+
+      pagelet.flush(function (error) {
+        assume(error).to.be.instanceof(Error);
+        assume(error.message).to.equal('Response was closed, unable to flush content');
+        done();
+      });
+    });
+
 
     it('joins content to Buffer and writes to the response', function (done) {
       pagelet._queue = [content];
 
-      pagelet.once('flush', function (error, data) {
+      pagelet.flush(function (error, data) {
         assume(error).to.equal(null);
-        assume(data.toString('utf-8')).to.equal(content);
+        assume(data.toString('utf-8')).to.equal(content.view);
         done();
       });
-
-      assume(pagelet.flush()).to.equal(pagelet);
     });
-
 
     it('writes with the adequate charset', function (done) {
       pagelet._queue = [content];
       pagelet.charset = 'ascii';
 
-      pagelet.once('flush', function (error, data) {
+      pagelet.flush(function (error, data) {
         assume(error).to.equal(null);
-        assume(data.toString('ascii')).to.equal(content);
+        assume(data.toString('ascii')).to.equal(content.view);
         done();
       });
-
-      assume(pagelet.flush()).to.equal(pagelet);
     });
 
-    it('resets the queue length', function () {
+    it('resets the queue length', function (done) {
       pagelet._queue = [content];
-      pagelet.flush();
-
-      assume(pagelet._queue.length).to.equal(0);
+      pagelet.flush(function () {
+        assume(pagelet._queue.length).to.equal(0);
+        done();
+      });
     });
 
     it('has fallback for callback-less response.write', function (done) {
       pagelet._res.write = function (data, encoding) { return data; };
 
-      pagelet.once('flush', done);
-      assume(pagelet.flush()).to.equal(pagelet);
+      pagelet.flush(done);
     });
 
     it('always emits even if no data is written', function (done) {
-      pagelet._queue = [void 0];
-      pagelet.once('flush', done);
-      pagelet.flush();
+      pagelet._queue = [{ name: 'test', view: void 0}];
+      pagelet.flush(done);
     });
   });
 });

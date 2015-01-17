@@ -96,16 +96,33 @@ Pagelet.extend({
   /**
    * Add fragment of HTML to the queue.
    *
+   * @param {String} name Pagelet name that queued the content.
    * @param {String} html Output to be send to the response
-   * @param {Number} n Optional amount of pagelets that were queued.
    * @returns {Pagelet} this
    * @api public
    */
-  queue: function queue(html, n) {
-    this.length -= 'number' === typeof n ? n : 1;
-    this._queue.push(html);
+  queue: function queue(name, html) {
+    this.length--;
+
+    this._queue.push({
+      name: name,
+      view: html
+    });
 
     return this;
+  },
+
+  /**
+   * Join all the HTML fragments in the queue.
+   *
+   * @return {String} HTML
+   * @api private
+   */
+  join: function join() {
+    return this._queue.reduce(function flatten(data, fragment) {
+      if (!fragment.view) return data;
+      return data + fragment.view;
+    }, '');
   },
 
   /**
@@ -114,15 +131,19 @@ Pagelet.extend({
    * @returns {Pagelet} this
    * @api private
    */
-  flush: function flush() {
-    if (!this._queue.length) return this;
+  flush: function flush(done) {
+    if (this._res.finished) return done(
+      new Error('Response was closed, unable to flush content')
+    );
 
-    var data = new Buffer(this._queue.join(''), this.charset);
+    if (!this._queue.length) return done();
+
+    var data = new Buffer(this.join(), this.charset);
     this._queue.length = 0;
 
     if (data.length) {
       this.debug('Writing %d bytes of %s to response', data.length, this.charset);
-      this._res.write(data, this.emits('flush'));
+      this._res.write(data, done);
     }
 
     //
@@ -130,7 +151,67 @@ Pagelet.extend({
     // node, so if it's not supported we're just going to call the callback
     // our selfs.
     //
-    if (this._res.write.length !== 3 || !data.length) this.emit('flush');
+    if (this._res.write.length !== 3 || !data.length) return done();
+  },
+
+  /**
+   * Reduce all elements of the current queue to one single element based on
+   * the data-pagelet attribute
+   *
+   * @TODO cleanup
+   *
+   * @returns {Bootstrap} reference to self
+   * @api private
+   */
+  reduce: function reduce() {
+    var i = this._queue.length;
+
+    while (i--) {
+      var content = this._queue.pop()
+        , match = false
+        , base;
+
+      this._queue = this._queue.map(function (fragment) {
+        base = fragment.view;
+
+        [
+          "data-pagelet='"+ content.name +"'",
+          'data-pagelet="'+ content.name +'"',
+          'data-pagelet='+ content.name,
+        ].forEach(function locate(attribute) {
+          var index = base.indexOf(attribute)
+            , end;
+
+          //
+          // As multiple versions of the pagelet can be included in to one single
+          // parent pagelet we need to search for multiple occurrences of the
+          // `data-pagelet` attribute.
+          //
+          match = match || !!~index;
+          while (~index) {
+            end = base.indexOf('>', index);
+
+            if (~end) {
+              end += 1;
+              base = base.slice(0, end) + content.view + base.slice(end);
+              index = end + content.view.length;
+            }
+
+            index = base.indexOf(attribute, index + 1);
+          }
+        });
+
+        fragment.view = base;
+        return fragment;
+      });
+
+      //
+      // No match found push the element back into the queue so other
+      // elements can iterate against it.
+      //
+      if (!match) this._queue.unshift(content);
+    }
+
     return this;
   },
 
@@ -184,9 +265,13 @@ Pagelet.extend({
 
     //
     // Adds initial HTML headers to the queue. The first flush will
-    // push out these headers immediatly
+    // push out these headers immediatly. If the render mode is sync
+    // the headers will be injected with the other content.
     //
     this.debug('Queueing initial headers');
-    this.queue(this.render(), 0);
+    this._queue.push({
+      name: this.name,
+      view: this.render()
+    });
   }
 }).on(module);
