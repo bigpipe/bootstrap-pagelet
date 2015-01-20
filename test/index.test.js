@@ -256,7 +256,7 @@ describe('Boostrap Pagelet', function () {
       assume(result).to.equal('[{"test":"value"},{"another":"object"}]');
     });
 
-    it('returns empty if the data objects cannot be stringied', function (done) {
+    it('returns empty if the data objects cannot be stringied and emits an error', function (done) {
       var obj1 = { };
       var obj2 = { another: obj1 };
       obj1.test = obj2;
@@ -271,7 +271,7 @@ describe('Boostrap Pagelet', function () {
         assume(error).to.be.instanceof(Error);
         assume(error.message).to.equal('Converting circular structure to JSON');
         done();
-      })
+      });
 
       var result = pagelet.join();
       assume(pagelet._queue.length).to.equal(2);
