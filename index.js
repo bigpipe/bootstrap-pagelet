@@ -94,35 +94,52 @@ Pagelet.extend({
   },
 
   /**
-   * Add fragment of HTML to the queue.
+   * Add fragment of data to the queue.
    *
    * @param {String} name Pagelet name that queued the content.
-   * @param {String} html Output to be send to the response
+   * @param {Mixed} data Output to be send to the response
    * @returns {Pagelet} this
    * @api public
    */
-  queue: function queue(name, html) {
+  queue: function queue(name, data) {
     this.length--;
 
     this._queue.push({
       name: name,
-      view: html
+      view: data
     });
 
     return this;
   },
 
   /**
-   * Join all the HTML fragments in the queue.
+   * Joins all the data fragments in the queue.
    *
-   * @return {String} HTML
+   * @return {Mixed} Object by pagelet name or HTML string
    * @api private
    */
   join: function join() {
-    return this._queue.reduce(function flatten(data, fragment) {
-      if (!fragment.view) return data;
-      return data + fragment.view;
-    }, '');
+    var pagelet = this
+      , html = ~this.contentType.indexOf('text/html')
+      , result;
+
+    result = this._queue.reduce(function reduce(memo, fragment) {
+      if (!fragment.name || !fragment.view) return memo;
+      if (html) return memo + fragment.view;
+
+      memo[fragment.name] = fragment.view;
+      return memo;
+    }, html ? '' : {});
+
+    if (!html) try {
+      result = JSON.stringify(result);
+    } catch (error) {
+      pagelet.debug('Captured error while stringifying JSON data %s', error);
+      result = '';
+    }
+
+    this._queue.length = 0;
+    return result;
   },
 
   /**
@@ -139,9 +156,7 @@ Pagelet.extend({
     }
 
     if (!this._queue.length) this.emit('done');
-
     var data = new Buffer(this.join(), this.charset);
-    this._queue.length = 0;
 
     if (data.length) {
       this.debug('Writing %d bytes of %s to response', data.length, this.charset);

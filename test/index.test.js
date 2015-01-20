@@ -216,7 +216,7 @@ describe('Boostrap Pagelet', function () {
       assume(pagelet.join.length).to.equal(0);
     });
 
-    it('joins the HTML in the queue', function () {
+    it('joins the data in the queue and sets the queue length to 0', function () {
       pagelet._queue = [
         { name: '1', view: '<h1>first title</h1>' },
         { name: '2', view: '<h2>second title</h2>' }
@@ -224,7 +224,21 @@ describe('Boostrap Pagelet', function () {
 
       var result = pagelet.join();
       assume(result).to.be.a('string');
+      assume(pagelet._queue.length).to.equal(0);
       assume(result).to.equal('<h1>first title</h1><h2>second title</h2>');
+    });
+
+    it('joins and stringifies the data in the queue if required', function () {
+      pagelet.contentType = 'application/json; charset=UTF-8';
+      pagelet._queue = [
+        { name: 'obj1', view: { test: 'value' }},
+        { name: 'obj2', view: { another: 'object' }}
+      ];
+
+      var result = pagelet.join();
+      assume(result).to.be.a('string');
+      assume(pagelet._queue.length).to.equal(0);
+      assume(result).to.equal('{"obj1":{"test":"value"},"obj2":{"another":"object"}}');
     });
 
     it('will not join undefined or falsy views', function () {
