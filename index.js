@@ -55,13 +55,6 @@ Pagelet.extend({
   view: 'view.html',
 
   //
-  // Add a meta charset so the browser knows the encoding of the content so it
-  // will not buffer it up in memory to make an educated guess. This will ensure
-  // that the HTML is shown as fast as possible.
-  //
-  charset: 'utf-8',
-
-  //
   // Used for proper client side library initialization. Overrules the
   // default pagelet children length getter.
   //
@@ -72,7 +65,7 @@ Pagelet.extend({
   //
   keys: [
     'title', 'description', 'keywords', 'robots', 'favicon', 'author',
-    'dependencies', 'fallback', 'charset', '_parent', 'length', 'id'
+    'dependencies', 'fallback', 'contentType', '_parent', 'length', 'id'
   ],
 
   /**
@@ -140,6 +133,17 @@ Pagelet.extend({
 
     this._queue.length = 0;
     return result;
+  },
+
+  /**
+   * Get the charset fromt the content type.
+   *
+   * @returns {String} Charset
+   * @api private
+   */
+  get charset() {
+    var match = this.contentType.match(/charset="?([^"']+)/);
+    return match && match.length > 1 ? match[1] : 'UTF-8';
   },
 
   /**

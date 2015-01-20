@@ -51,7 +51,6 @@ describe('Boostrap Pagelet', function () {
     assume(pagelet.favicon).to.equal('/favicon.ico');
     assume(pagelet.author).to.equal('BigPipe');
     assume(pagelet.view).to.equal(process.cwd() + '/view.html');
-    assume(pagelet.charset).to.equal('utf-8');
   });
 
   it('has set of default keys that will be used by #render', function () {
@@ -61,6 +60,22 @@ describe('Boostrap Pagelet', function () {
     assume(pagelet.keys).to.include('_parent');
     assume(pagelet.keys).to.include('length');
     assume(pagelet.keys).to.include('id');
+  });
+
+  it('has charset getter that parses the content type', function () {
+    assume(pagelet.charset).to.equal('UTF-8');
+
+    pagelet.contentType = 'application/json; charset="utf-8"';
+    assume(pagelet.charset).to.equal('utf-8');
+
+    pagelet.contentType = 'application/json; charset=ascii';
+    assume(pagelet.charset).to.equal('ascii');
+
+    pagelet.contentType = 'application/json; charset=';
+    assume(pagelet.charset).to.equal('UTF-8');
+
+    pagelet.contentType = 'application/json;';
+    assume(pagelet.charset).to.equal('UTF-8');
   });
 
   describe('#constructor', function () {
@@ -77,7 +92,7 @@ describe('Boostrap Pagelet', function () {
       assume(pagelet._queue).to.be.an('array');
       assume(pagelet._queue.length).to.equal(1);
       assume(pagelet._queue[0].name).to.equal('bootstrap');
-      assume(pagelet._queue[0].view).to.include('<meta charset="utf-8">');
+      assume(pagelet._queue[0].view).to.include('<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">');
     });
 
     it('resolves dependencies to a string', function () {
@@ -149,7 +164,7 @@ describe('Boostrap Pagelet', function () {
       var html = pagelet.render();
 
       assume(html).to.include('<html class="no-js">');
-      assume(html).to.include('<meta charset="utf-8">');
+      assume(html).to.include('<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">');
     });
 
     it('uses default set of keys to replace encapsulated data', function () {
@@ -354,7 +369,7 @@ describe('Boostrap Pagelet', function () {
 
     it('writes with the adequate charset', function (done) {
       pagelet._queue = [content];
-      pagelet.charset = 'ascii';
+      pagelet.contentType = 'text/html; charset=ascii';
 
       pagelet.flush(function (error, data) {
         assume(error).to.equal(null);
