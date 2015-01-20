@@ -253,7 +253,29 @@ describe('Boostrap Pagelet', function () {
       var result = pagelet.join();
       assume(result).to.be.a('string');
       assume(pagelet._queue.length).to.equal(0);
-      assume(result).to.equal('{"obj1":{"test":"value"},"obj2":{"another":"object"}}');
+      assume(result).to.equal('[{"test":"value"},{"another":"object"}]');
+    });
+
+    it('returns empty if the data objects cannot be stringied', function (done) {
+      var obj1 = { };
+      var obj2 = { another: obj1 };
+      obj1.test = obj2;
+
+      pagelet.contentType = 'application/json; charset=UTF-8';
+      pagelet._queue = [
+        { name: 'obj1', view: obj1},
+        { name: 'obj2', view: obj2}
+      ];
+
+      pagelet.once('error', function (error) {
+        assume(error).to.be.instanceof(Error);
+        assume(error.message).to.equal('Converting circular structure to JSON');
+        done();
+      })
+
+      var result = pagelet.join();
+      assume(pagelet._queue.length).to.equal(2);
+      assume(result).to.equal(undefined);
     });
 
     it('will not join undefined or falsy views', function () {

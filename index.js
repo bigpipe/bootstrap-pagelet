@@ -112,28 +112,23 @@ Pagelet.extend({
    * @api private
    */
   join: function join() {
-    var pagelet = this
-      , html = ~this.contentType.indexOf('text/html')
-      , result;
+    var html = ~this.contentType.indexOf('text/html')
+      , result = this._queue.map(function flatten(fragment) {
+          if (!fragment.name || !fragment.view) return '';
+          return fragment.view;
+        });
 
-    result = this._queue.reduce(function reduce(memo, fragment) {
-      if (!fragment.name || !fragment.view) return memo;
-      if (html) return memo + fragment.view;
-
-      memo[fragment.name] = fragment.view;
-      return memo;
-    }, html ? '' : {});
-
-    if (!html) try {
-      result = JSON.stringify(result);
+    try {
+      result = html ? result.join('') : JSON.stringify(result);
     } catch (error) {
-      pagelet.debug('Captured error while stringifying JSON data %s', error);
-      result = '';
+      this.emit('error', error);
+      return this.debug('Captured error while stringifying JSON data %s', error);
     }
 
     this._queue.length = 0;
     return result;
   },
+
 
   /**
    * Get the charset fromt the content type.
