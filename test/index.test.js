@@ -62,19 +62,7 @@ describe('Boostrap Pagelet', function () {
     assume(pagelet.keys).to.include('id');
   });
 
-  it('has charset getter that parses the content type', function () {
-    assume(pagelet.charset).to.equal('UTF-8');
-
-    pagelet.contentType = 'application/json; charset="utf-8"';
-    assume(pagelet.charset).to.equal('utf-8');
-
-    pagelet.contentType = 'application/json; charset=ascii';
-    assume(pagelet.charset).to.equal('ascii');
-
-    pagelet.contentType = 'application/json; charset=';
-    assume(pagelet.charset).to.equal('UTF-8');
-
-    pagelet.contentType = 'application/json;';
+  it('has charset utf-8', function () {
     assume(pagelet.charset).to.equal('UTF-8');
   });
 
@@ -85,14 +73,6 @@ describe('Boostrap Pagelet', function () {
 
       assume(pagelet.length).to.equal(amount);
       assume(pagelet.length).to.be.a('number');
-    });
-
-    it('queues the initial HTML headers', function () {
-      assume(Bootstrapper.prototype._queue).to.equal(undefined);
-      assume(pagelet._queue).to.be.an('array');
-      assume(pagelet._queue.length).to.equal(1);
-      assume(pagelet._queue[0].name).to.equal('bootstrap');
-      assume(pagelet._queue[0].view).to.include('<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">');
     });
 
     it('resolves dependencies to a string', function () {
@@ -108,20 +88,6 @@ describe('Boostrap Pagelet', function () {
 
       assume(pagelet.dependencies).to.be.a('string');
       assume(pagelet.dependencies).to.equal('<script src="http://code.jquery.com/jquery-2.0.0.js"></script>');
-    });
-
-    it('expects temper instance to be provided', function () {
-      function notemper() {
-        try {
-          return new P;
-        } catch (e) {
-          return e;
-        }
-      }
-
-      var result = notemper();
-      assume(result).to.be.instanceof(Error);
-      assume(result.message).to.equal("Cannot call method 'fetch' of undefined");
     });
 
     it('sets the correct fallback script', function () {
@@ -160,24 +126,40 @@ describe('Boostrap Pagelet', function () {
       assume(Bootstrapper.prototype.render.length).to.equal(0);
     });
 
-    it('returns the initial HTML', function () {
-      var html = pagelet.render();
+    it('queues the initial HTML headers', function () {
+      pagelet.render();
+      assume(pagelet._queue).to.be.an('array');
+      assume(pagelet._queue.length).to.equal(1);
+      assume(pagelet._queue[0].name).to.equal('bootstrap');
+      assume(pagelet._queue[0].view).to.include('<meta charset="UTF-8">');
+    });
 
-      assume(html).to.include('<html class="no-js">');
-      assume(html).to.include('<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">');
+    it('expects temper instance to be provided', function () {
+      function notemper() {
+        try {
+          var p = new P;
+          return p.render();
+        } catch (e) {
+          return e;
+        }
+      }
+
+      var result = notemper();
+      assume(result).to.be.instanceof(Error);
+      assume(result.message).to.equal("Cannot call method 'fetch' of undefined");
     });
 
     it('uses default set of keys to replace encapsulated data', function () {
       pagelet.keys = pagelet.keys.filter(function (key) { return key !== 'dependencies'; });
 
-      assume(pagelet.render()).to.include('{dependencies}');
+      assume(pagelet.render()._queue[0].view).to.include('{dependencies}');
     });
 
     it('use the current values of keys', function () {
       pagelet._parent = 'test';
       pagelet.id = 'another id';
 
-      var html = pagelet.render();
+      var html = pagelet.render()._queue[0].view;
 
       assume(html).to.include('test');
       assume(html).to.include('another id');
@@ -188,7 +170,7 @@ describe('Boostrap Pagelet', function () {
         view: 'fixtures/view.html'
       }).on(module))({ temper: new Temper });
 
-      var html = pagelet.render();
+      var html = pagelet.render()._queue[0].view;
 
       assume(html).to.include('<title>Custom title</title>');
       assume(html).to.include('<h1>Wrapping bootstrap!</h1>');
@@ -244,7 +226,8 @@ describe('Boostrap Pagelet', function () {
     });
 
     it('joins and stringifies the data in the queue if required', function () {
-      pagelet.contentType = 'application/json; charset=UTF-8';
+      pagelet.contentType = 'application/json';
+      pagelet._res = { headersSent: true };
       pagelet._queue = [
         { name: 'obj1', view: { test: 'value' }},
         { name: 'obj2', view: { another: 'object' }}
@@ -261,7 +244,8 @@ describe('Boostrap Pagelet', function () {
       var obj2 = { another: obj1 };
       obj1.test = obj2;
 
-      pagelet.contentType = 'application/json; charset=UTF-8';
+      pagelet.contentType = 'application/json';
+      pagelet._res = { headersSent: true };
       pagelet._queue = [
         { name: 'obj1', view: obj1},
         { name: 'obj2', view: obj2}

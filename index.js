@@ -29,6 +29,14 @@ var script = [
 ].join('');
 
 //
+// Map of available content types.
+//
+var contentTypes = {
+  'html': 'text/html',
+  'json': 'application/json'
+};
+
+//
 // This basic HEAD/bootstrap pagelet can easily be extended.
 // Bootstrap adds specific directives to the HEAD element, which are required
 // for BigPipe to function.
@@ -53,6 +61,7 @@ Pagelet.extend({
   author: 'BigPipe',
   dependencies: '',
   view: 'view.html',
+  charset: 'UTF-8',
 
   //
   // Used for proper client side library initialization. Overrules the
@@ -65,7 +74,7 @@ Pagelet.extend({
   //
   keys: [
     'title', 'description', 'keywords', 'robots', 'favicon', 'author',
-    'dependencies', 'fallback', 'contentType', '_parent', 'length', 'id'
+    'dependencies', 'fallback', 'charset', '_parent', 'length', 'id'
   ],
 
   /**
@@ -73,7 +82,7 @@ Pagelet.extend({
    * templater to handle data in HTML templates. Data has to be specifically
    * provided, properties of `this` are not enumarable and would not be included.
    *
-   * @return {String} Generated template.
+   * @returns {Pagelet} this
    * @api public
    */
   render: function render() {
@@ -83,7 +92,33 @@ Pagelet.extend({
           return memo;
         }, {});
 
-    return this._temper.fetch(this.view).server(data);
+    //
+    // Adds initial HTML headers to the queue. The first flush will
+    // push out these headers immediatly. If the render mode is sync
+    // the headers will be injected with the other content.
+    //
+    this.debug('Queueing initial headers');
+    this._queue.push({
+      name: this.name,
+      view: this._temper.fetch(this.view).server(data)
+    });
+
+    return this;
+  },
+
+  /**
+   * Change the contentType header if possible.
+   *
+   * @param {String} type html|json
+   * @api private
+   */
+  contentTypeHeader: function contentTypeHeader(type) {
+    if (this._res.headersSent) return this.debug(
+      'Headers already sent, ignoring content type change: %s', contentTypes[type]
+    );
+
+    this.contentType = contentTypes[type];
+    this._res.setHeader('Content-Type', this.contentType);
   },
 
   /**
@@ -112,14 +147,17 @@ Pagelet.extend({
    * @api private
    */
   join: function join() {
-    var html = ~this.contentType.indexOf('text/html')
+    var pagelet = this
       , result = this._queue.map(function flatten(fragment) {
           if (!fragment.name || !fragment.view) return '';
+          if ('object' === typeof fragment.view) pagelet.emit('contentType', 'json');
           return fragment.view;
         });
 
     try {
-      result = html ? result.join('') : JSON.stringify(result);
+      result = this._contentType === contentTypes.json
+        ? JSON.stringify(result)
+        : result.join('');
     } catch (error) {
       this.emit('error', error);
       return this.debug('Captured error while stringifying JSON data %s', error);
@@ -127,18 +165,6 @@ Pagelet.extend({
 
     this._queue.length = 0;
     return result;
-  },
-
-
-  /**
-   * Get the charset fromt the content type.
-   *
-   * @returns {String} Charset
-   * @api private
-   */
-  get charset() {
-    var match = this.contentType.match(/charset="?([^"']+)/);
-    return match && match.length > 1 ? match[1] : 'UTF-8';
   },
 
   /**
@@ -172,7 +198,7 @@ Pagelet.extend({
 
   /**
    * Reduce all elements of the current queue to one single element based on
-   * the data-pagelet attribute
+   * the data-pagelet attribute. Only text/html content can be properly reduced.
    *
    * @TODO cleanup
    *
@@ -180,6 +206,7 @@ Pagelet.extend({
    * @api private
    */
   reduce: function reduce() {
+    if (this._contentType !== contentTypes.html) return this;
     var i = this._queue.length;
 
     while (i--) {
@@ -266,6 +293,7 @@ Pagelet.extend({
     // Number of child pagelets that should be written.
     //
     this.length = options.queue || 0;
+    this.once('contentType', this.contentTypeHeader, this);
 
     //
     // Set the default fallback script, see explanation above.
@@ -278,16 +306,5 @@ Pagelet.extend({
       '{query}',
       qs.stringify(this.merge({ no_pagelet_js: 1 }, query))
     );
-
-    //
-    // Adds initial HTML headers to the queue. The first flush will
-    // push out these headers immediatly. If the render mode is sync
-    // the headers will be injected with the other content.
-    //
-    this.debug('Queueing initial headers');
-    this._queue.push({
-      name: this.name,
-      view: this.render()
-    });
   }
 }).on(module);
