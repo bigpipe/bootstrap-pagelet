@@ -337,7 +337,7 @@ describe('Boostrap Pagelet', function () {
       assume(pagelet._queue[0].view).to.equal(
         '<h1>first title <div data-pagelet="2"></div></h1>'
       );
-    })
+    });
 
     it('reduces multiple occurences of the same data-pagelet attribute', function () {
       pagelet._queue = [
