@@ -207,6 +207,38 @@ describe('Boostrap Pagelet', function () {
     });
   });
 
+  describe('#contentTypeHeader', function () {
+    it('is a function', function () {
+      assume(pagelet.contentTypeHeader).is.a('function');
+      assume(pagelet.contentTypeHeader.length).to.equal(1);
+    });
+
+    it('will not change content type if the headers are already sent', function () {
+      pagelet._res = {
+        headersSent: true
+      };
+
+      assume(pagelet._contentType).to.equal('text/html');
+      pagelet.contentTypeHeader('json');
+      assume(pagelet._contentType).to.equal('text/html');
+    });
+
+    it('will switch content type and set headers', function (done) {
+      pagelet._res = {
+        headersSent: false,
+        setHeader: function (key, value) {
+          assume(key).to.equal('Content-Type');
+          assume(value).to.equal('application/json;charset=UTF-8');
+          done();
+        }
+      };
+
+      assume(pagelet._contentType).to.equal('text/html');
+      pagelet.contentTypeHeader('json');
+      assume(pagelet._contentType).to.equal('application/json');
+    });
+  });
+
   describe('#join', function () {
     it('is a function', function () {
       assume(pagelet.join).is.a('function');
@@ -292,6 +324,20 @@ describe('Boostrap Pagelet', function () {
         '<h1>first title <div data-pagelet="2"><h2>second title</h2></div></h1>'
       );
     });
+
+    it('only reduces if the content type is text/html', function () {
+      pagelet._queue = [
+        { name: '1', view: '<h1>first title <div data-pagelet="2"></div></h1>' },
+        { name: '2', view: '<h2>second title</h2>' }
+      ];
+
+      pagelet._contentType = 'application/json';
+      assume(pagelet.reduce()).to.equal(pagelet);
+      assume(pagelet._queue.length).to.equal(2);
+      assume(pagelet._queue[0].view).to.equal(
+        '<h1>first title <div data-pagelet="2"></div></h1>'
+      );
+    })
 
     it('reduces multiple occurences of the same data-pagelet attribute', function () {
       pagelet._queue = [
