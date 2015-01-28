@@ -76,7 +76,7 @@ Pagelet.extend({
   //
   keys: [
     'title', 'description', 'keywords', 'robots', 'favicon', 'author',
-    'dependencies', 'fallback', 'charset', '_parent', 'length', 'id'
+    'dependencies', 'fallback', 'charset', '_child', 'length', 'id'
   ],
 
   /**
@@ -209,7 +209,7 @@ Pagelet.extend({
    */
   reduce: function reduce() {
     if (this._contentType !== contentTypes.html) return this;
-    var tree = new Sapling(this._queue, 'name', 'parent')
+    var tree = new Sapling(this._queue, 'name', 'parent');
 
     t.dfs(tree, function each(child, parent) {
       if (parent && parent.name === child.parent) [
@@ -301,9 +301,10 @@ Pagelet.extend({
     this._queue = [];
 
     //
-    // Number of child pagelets that should be written.
+    // Prepare several properties that are used to render the HTML fragment.
     //
     this.length = options.queue || 0;
+    this._child = options.child || 'root';
     this.once('contentType', this.contentTypeHeader, this);
 
     //

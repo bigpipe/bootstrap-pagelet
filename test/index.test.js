@@ -57,7 +57,7 @@ describe('Boostrap Pagelet', function () {
     assume(pagelet.keys).to.be.an('array');
     assume(pagelet.keys.length).to.equal(12);
     assume(pagelet.keys).to.include('dependencies');
-    assume(pagelet.keys).to.include('_parent');
+    assume(pagelet.keys).to.include('_child');
     assume(pagelet.keys).to.include('length');
     assume(pagelet.keys).to.include('id');
   });
@@ -156,7 +156,7 @@ describe('Boostrap Pagelet', function () {
     });
 
     it('use the current values of keys', function () {
-      pagelet._parent = 'test';
+      pagelet._child = 'test';
       pagelet.id = 'another id';
 
       var html = pagelet.render()._queue[0].view;
