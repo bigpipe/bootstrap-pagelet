@@ -1,7 +1,9 @@
 'use strict';
 
 var Pagelet = require('pagelet')
-  , qs = require('querystring');
+  , Sapling = require('sapling')
+  , qs = require('querystring')
+  , t = require('t');
 
 //
 // BigPipe depends heavily on the support of JavaScript in browsers as the
@@ -125,14 +127,16 @@ Pagelet.extend({
    * Add fragment of data to the queue.
    *
    * @param {String} name Pagelet name that queued the content.
+   * @param {String} parent Pagelet parent that queued the content.
    * @param {Mixed} data Output to be send to the response
    * @returns {Pagelet} this
    * @api public
    */
-  queue: function queue(name, data) {
+  queue: function queue(name, parent, data) {
     this.length--;
 
     this._queue.push({
+      parent: parent,
       name: name,
       view: data
     });
@@ -159,7 +163,7 @@ Pagelet.extend({
         ? JSON.stringify(result)
         : result.join('');
     } catch (error) {
-      this.emit('error', error);
+      this.emit('done', error);
       return this.debug('Captured error while stringifying JSON data %s', error);
     }
 
@@ -200,60 +204,67 @@ Pagelet.extend({
    * Reduce all elements of the current queue to one single element based on
    * the data-pagelet attribute. Only text/html content can be properly reduced.
    *
-   * @TODO cleanup
-   *
    * @returns {Bootstrap} reference to self
    * @api private
    */
   reduce: function reduce() {
     if (this._contentType !== contentTypes.html) return this;
-    var i = this._queue.length;
+    var tree = new Sapling(this._queue, 'name', 'parent')
 
-    while (i--) {
-      var content = this._queue.pop()
-        , match = false
-        , base;
+    t.dfs(tree, function each(child, parent) {
+      if (parent && parent.name === child.parent) [
+        "data-pagelet='"+ child.name +"'",
+        'data-pagelet="'+ child.name +'"',
+        'data-pagelet='+ child.name,
+      ].forEach(function locate(attribute) {
+        var index = parent.view.indexOf(attribute)
+          , id = '{id-'+ child.name +'}'
+          , end;
 
-      this._queue = this._queue.map(function (fragment) {
-        base = fragment.view;
+        //
+        // As multiple versions of the pagelet can be included in to one single
+        // parent pagelet we need to search for multiple occurrences of the
+        // `data-pagelet` attribute.
+        //
+        while (~index) {
+          end = parent.view.indexOf('>', index);
 
-        [
-          "data-pagelet='"+ content.name +"'",
-          'data-pagelet="'+ content.name +'"',
-          'data-pagelet='+ content.name,
-        ].forEach(function locate(attribute) {
-          var index = base.indexOf(attribute)
-            , end;
-
-          //
-          // As multiple versions of the pagelet can be included in to one single
-          // parent pagelet we need to search for multiple occurrences of the
-          // `data-pagelet` attribute.
-          //
-          match = match || !!~index;
-          while (~index) {
-            end = base.indexOf('>', index);
-
-            if (~end) {
-              end += 1;
-              base = base.slice(0, end) + content.view + base.slice(end);
-              index = end + content.view.length;
-            }
-
-            index = base.indexOf(attribute, index + 1);
+          if (~end) {
+            end += 1;
+            parent.view = parent.view.slice(0, end) + id + parent.view.slice(end);
+            index = end + id.length;
           }
-        });
 
-        fragment.view = base;
-        return fragment;
+          index = parent.view.indexOf(attribute, index + 1);
+        }
       });
+    });
 
-      //
-      // No match found push the element back into the queue so other
-      // elements can iterate against it.
-      //
-      if (!match) this._queue.unshift(content);
-    }
+    //
+    // Walk through the tree in reversed order to replace the data
+    // added in each view. This has to be done seperatly otherwise childs
+    // at different branches might replace content in the wrong parent
+    // due to name collisions.
+    //
+    t.dfs(tree, { order: 'post' }, function each(child, parent) {
+      if (parent && parent.name === child.parent) {
+        parent.view = parent.view.replace(
+          new RegExp('{id-'+ child.name +'}','g'),
+          child.view
+        );
+      }
+    });
+
+    //
+    // Finally clean up the queue for unprocessed fragments. Only the root
+    // element containing the content of the reduced children is allowed to
+    // be written to the response. Remaining fragments would destroy the
+    // HTML output.
+    //
+    this._queue = [{
+      name: tree.name,
+      view: tree.view
+    }];
 
     return this;
   },

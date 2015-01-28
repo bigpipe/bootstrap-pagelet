@@ -11,7 +11,9 @@
   },
   "dependencies": {
     "pagelet": "1.0.x",
-    "querystring": "0.2.x"
+    "querystring": "0.2.x",
+    "sapling": "0.0.x",
+    "t": "0.5.x"
   },
   "devDependencies": {
     "assume": "0.0.x",

@@ -180,29 +180,31 @@ describe('Boostrap Pagelet', function () {
   describe('#queue', function () {
     it('is a function', function () {
       assume(pagelet.queue).is.a('function');
-      assume(pagelet.queue.length).to.equal(2);
+      assume(pagelet.queue.length).to.equal(3);
     });
 
     it('adds html to the internal queue', function () {
       pagelet._queue.length = 0;
 
-      pagelet.queue('test', '<h1>some html</h1>');
+      pagelet.queue('test', 'parent', '<h1>some html</h1>');
       assume(pagelet._queue.length).to.equal(1);
       assume(pagelet._queue[0].name).to.equal('test');
+      assume(pagelet._queue[0].parent).to.equal('parent');
       assume(pagelet._queue[0].view).to.equal('<h1>some html</h1>');
 
-      pagelet.queue('test', '<p>some more</p>');
+      pagelet.queue('test', 'parent', '<p>some more</p>');
       assume(pagelet._queue.length).to.equal(2);
+      assume(pagelet._queue[0].parent).to.equal('parent');
       assume(pagelet._queue[1].view).to.equal('<p>some more</p>');
     });
 
     it('substracts one from count', function () {
       pagelet.length = 5;
 
-      pagelet.queue('test', '<p>some more</p>');
+      pagelet.queue('test', 'parent', '<p>some more</p>');
       assume(pagelet.length).to.equal(4);
 
-      pagelet.queue('test', '<p>some more</p>', 'not a number');
+      pagelet.queue('test', 'parent', '<p>some more</p>');
       assume(pagelet.length).to.equal(3);
     });
   });
@@ -283,7 +285,7 @@ describe('Boostrap Pagelet', function () {
         { name: 'obj2', view: obj2}
       ];
 
-      pagelet.once('error', function (error) {
+      pagelet.once('done', function (error) {
         assume(error).to.be.instanceof(Error);
         assume(error.message).to.equal('Converting circular structure to JSON');
         done();
@@ -314,21 +316,23 @@ describe('Boostrap Pagelet', function () {
 
     it('reduces the elements inside the queue to a single element', function () {
       pagelet._queue = [
-        { name: '1', view: '<h1>first title <div data-pagelet="2"></div></h1>' },
-        { name: '2', view: '<h2>second title</h2>' }
+        { name: '1', view: '<h1>first title <div data-pagelet="2"></div><div data-pagelet="4"></div></h1>' },
+        { name: '3', view: 'hello world', parent: '2' },
+        { name: '4', view: 'hello world', parent: '1' },
+        { name: '2', view: '<h2>second title</h2><span data-pagelet="3"></span><div data-pagelet="4"></div>', parent: '1' }
       ];
 
       pagelet.reduce();
       assume(pagelet._queue.length).to.equal(1);
       assume(pagelet._queue[0].view).to.equal(
-        '<h1>first title <div data-pagelet="2"><h2>second title</h2></div></h1>'
+        '<h1>first title <div data-pagelet="2"><h2>second title</h2><span data-pagelet="3">hello world</span><div data-pagelet="4"></div></div><div data-pagelet="4">hello world</div></h1>'
       );
     });
 
     it('only reduces if the content type is text/html', function () {
       pagelet._queue = [
         { name: '1', view: '<h1>first title <div data-pagelet="2"></div></h1>' },
-        { name: '2', view: '<h2>second title</h2>' }
+        { name: '2', view: '<h2>second title</h2>', parent: '1' }
       ];
 
       pagelet._contentType = 'application/json';
@@ -342,7 +346,7 @@ describe('Boostrap Pagelet', function () {
     it('reduces multiple occurences of the same data-pagelet attribute', function () {
       pagelet._queue = [
         { name: '1', view: '<h1>first title <div data-pagelet="2"></div><div data-pagelet="2"></div></h1>' },
-        { name: '2', view: '<h2>second title</h2>' }
+        { name: '2', view: '<h2>second title</h2>', parent: '1' }
       ];
 
       pagelet.reduce();
@@ -355,7 +359,7 @@ describe('Boostrap Pagelet', function () {
     it('requires closing > to find matching element', function () {
       pagelet._queue = [
         { name: '1', view: '<h1>first title <div data-pagelet="2"' },
-        { name: '2', view: '<h2>second title</h2>' }
+        { name: '2', view: '<h2>second title</h2>', parent: '1' }
       ];
 
       pagelet.reduce();
