@@ -207,6 +207,20 @@ describe('Boostrap Pagelet', function () {
       pagelet.queue('test', 'parent', '<p>some more</p>');
       assume(pagelet.length).to.equal(3);
     });
+
+    it('emits contentType json if an object is queued', function (done) {
+      pagelet._queue.length = 0;
+      pagelet._res = {
+        setHeader: function noop() {}
+      };
+
+      pagelet.once('contentType', function (type) {
+        assume(type).to.equal('json');
+        done();
+      });
+
+      pagelet.queue('test', 'parent', {});
+    });
   });
 
   describe('#contentTypeHeader', function () {
@@ -270,7 +284,7 @@ describe('Boostrap Pagelet', function () {
       var result = pagelet.join();
       assume(result).to.be.a('string');
       assume(pagelet._queue.length).to.equal(0);
-      assume(result).to.equal('[{"test":"value"},{"another":"object"}]');
+      assume(result).to.equal('{"test":"value"}');
     });
 
     it('returns empty if the data objects cannot be stringied and emits an error', function (done) {

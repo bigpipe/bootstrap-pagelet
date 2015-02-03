@@ -135,6 +135,13 @@ Pagelet.extend({
   queue: function queue(name, parent, data) {
     this.length--;
 
+    //
+    // Object was queued, transform the response type to application/json.
+    //
+    if ('object' === typeof data && this._contentType !== contentTypes.json) {
+      this.emit('contentType', 'json');
+    }
+
     this._queue.push({
       parent: parent,
       name: name,
@@ -154,13 +161,12 @@ Pagelet.extend({
     var pagelet = this
       , result = this._queue.map(function flatten(fragment) {
           if (!fragment.name || !fragment.view) return '';
-          if ('object' === typeof fragment.view) pagelet.emit('contentType', 'json');
           return fragment.view;
         });
 
     try {
       result = this._contentType === contentTypes.json
-        ? JSON.stringify(result)
+        ? JSON.stringify(result.shift())
         : result.join('');
     } catch (error) {
       this.emit('done', error);
