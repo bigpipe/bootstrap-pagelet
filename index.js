@@ -309,7 +309,7 @@ Pagelet.extend({
     //
     // Prepare several properties that are used to render the HTML fragment.
     //
-    this.length = options.queue || 0;
+    this.length = options.length || 0;
     this._child = options.child || 'root';
     this.once('contentType', this.contentTypeHeader, this);
 
