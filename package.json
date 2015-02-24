@@ -1,6 +1,6 @@
 {
   "name": "bootstrap-pagelet",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Base Pagelet that is responsible for bootstrapping the client side of BigPipe",
   "main": "index.js",
   "scripts": {
@@ -10,7 +10,7 @@
     "test-travis": "istanbul cover node_modules/.bin/_mocha --report lcovonly -- $(find test -name '*.test.js')"
   },
   "dependencies": {
-    "pagelet": "1.0.x",
+    "pagelet": "1.0.0-alpha",
     "querystring": "0.2.x",
     "sapling": "0.0.x",
     "t": "0.5.x"
