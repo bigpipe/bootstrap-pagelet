@@ -69,7 +69,7 @@ describe('Boostrap Pagelet', function () {
   describe('#constructor', function () {
     it('sets amount of pagelets to be processed from options', function () {
       var amount = 7;
-      pagelet = new P({ temper: new Temper, queue: amount });
+      pagelet = new P({ temper: new Temper, length: amount });
 
       assume(pagelet.length).to.equal(amount);
       assume(pagelet.length).to.be.a('number');
@@ -146,7 +146,7 @@ describe('Boostrap Pagelet', function () {
 
       var result = notemper();
       assume(result).to.be.instanceof(Error);
-      assume(result.message).to.equal("Cannot call method 'fetch' of undefined");
+      assume(result.message).to.include("'fetch' of undefined");
     });
 
     it('uses default set of keys to replace encapsulated data', function () {
