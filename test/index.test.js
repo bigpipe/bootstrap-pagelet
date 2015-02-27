@@ -5,18 +5,24 @@ describe('Boostrap Pagelet', function () {
     , Pagelet = require('pagelet')
     , Temper = require('temper')
     , assume = require('assume')
-    , pagelet, P;
+    , pagelet, P, pipe;
 
   beforeEach(function () {
     P = Bootstrapper.extend({
       description: 'my custom description',
       dependencies: [
-        '<script src="http://code.jquery.com/jquery-2.0.0.js"></script>',
-        '<script src="fixtures/custom.js"></script>'
+        'http://code.jquery.com/jquery-2.0.0.js',
+        'fixtures/custom.js'
       ]
     });
 
-    pagelet = new P({ temper: new Temper });
+    pipe = {
+      _compiler: {
+        page: function noop() { return ['stubbed deps'] }
+      }
+    };
+
+    pagelet = new P({ temper: new Temper, pipe: pipe });
   });
 
   afterEach(function each() {
@@ -69,25 +75,15 @@ describe('Boostrap Pagelet', function () {
   describe('#constructor', function () {
     it('sets amount of pagelets to be processed from options', function () {
       var amount = 7;
-      pagelet = new P({ temper: new Temper, length: amount });
+      pagelet = new P({ temper: new Temper, length: amount, pipe: pipe });
 
       assume(pagelet.length).to.equal(amount);
       assume(pagelet.length).to.be.a('number');
     });
 
-    it('resolves dependencies to a string', function () {
+    it('resolves dependencies', function () {
       assume(pagelet.dependencies).to.be.a('string');
-      assume(pagelet.dependencies).to.include('<script src="http://code.jquery.com/jquery-2.0.0.js"></script>');
-      assume(pagelet.dependencies).to.include('<script src="fixtures/custom.js"></script>');
-    });
-
-    it('will leave dependencies string intact', function () {
-      pagelet = new (P.extend({
-        dependencies: '<script src="http://code.jquery.com/jquery-2.0.0.js"></script>'
-      }).on(module))({ temper: new Temper });
-
-      assume(pagelet.dependencies).to.be.a('string');
-      assume(pagelet.dependencies).to.equal('<script src="http://code.jquery.com/jquery-2.0.0.js"></script>');
+      assume(pagelet.dependencies).to.equal('stubbed deps');
     });
 
     it('sets the correct fallback script', function () {
@@ -96,7 +92,7 @@ describe('Boostrap Pagelet', function () {
         '<meta http-equiv="refresh" content="0; URL=http://localhost/?no_pagelet_js=1">'
       );
 
-      pagelet = new P({ temper: new Temper, mode: 'sync' });
+      pagelet = new P({ temper: new Temper, mode: 'sync', pipe: pipe });
       assume(pagelet.fallback).to.be.a('string');
       assume(pagelet.fallback).to.include(
         'if (~location.search.indexOf("no_pagelet_js=1"))location.href = location.href.replace(location.search, "")'
@@ -105,6 +101,7 @@ describe('Boostrap Pagelet', function () {
 
     it('provides the current pathname and querystring to the async fallback script', function () {
       pagelet = new P({
+        pipe: pipe,
         temper: new Temper,
         req: {
           query: { test: 'req' },
@@ -137,7 +134,7 @@ describe('Boostrap Pagelet', function () {
     it('expects temper instance to be provided', function () {
       function notemper() {
         try {
-          var p = new P;
+          var p = new P({ pipe: pipe });
           return p.render();
         } catch (e) {
           return e;
@@ -168,7 +165,7 @@ describe('Boostrap Pagelet', function () {
     it('will use the provided view', function () {
       pagelet = new (P.extend({
         view: 'fixtures/view.html'
-      }).on(module))({ temper: new Temper });
+      }).on(module))({ temper: new Temper, pipe: pipe });
 
       var html = pagelet.render()._queue[0].view;
 
@@ -392,6 +389,7 @@ describe('Boostrap Pagelet', function () {
 
     beforeEach(function () {
       pagelet = new P({
+        pipe: pipe,
         temper: new Temper,
         res: {
           write: function (data, encoding, done) {

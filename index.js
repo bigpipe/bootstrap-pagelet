@@ -61,7 +61,6 @@ Pagelet.extend({
   robots: ['index', 'follow'],
   favicon: '/favicon.ico',
   author: 'BigPipe',
-  dependencies: '',
   view: 'view.html',
   charset: 'UTF-8',
 
@@ -286,14 +285,12 @@ Pagelet.extend({
     Pagelet.prototype.constructor.call(this, options);
 
     options = options || {};
-    options.dependencies = options.dependencies || this.dependencies;
+    options.dependencies = this.dependencies.concat(options.dependencies || []);
 
     //
     // Store the provided global dependencies.
     //
-    if (Array.isArray(options.dependencies)) {
-      this.dependencies = options.dependencies.join('');
-    }
+    this.dependencies = this._pipe._compiler.page(this).join('');
 
     var req = options.req || {}
       , uri = req.uri || {}
