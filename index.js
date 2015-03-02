@@ -290,7 +290,9 @@ Pagelet.extend({
     //
     // Store the provided global dependencies.
     //
-    this.dependencies = this._pipe._compiler.page(this).join('');
+    if (options.dependencies.length) {
+      this.dependencies = this._pipe._compiler.page(this).join('');
+    }
 
     var req = options.req || {}
       , uri = req.uri || {}
