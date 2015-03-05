@@ -88,10 +88,19 @@ Pagelet.extend({
    */
   render: function render() {
     var bootstrap = this
-      , data = this.keys.reduce(function reduce(memo, key) {
-          memo[key] = bootstrap[key];
-          return memo;
-        }, {});
+      , data = {};
+
+    this.keys.reduce(function reduce(memo, key) {
+      memo[key] = bootstrap[key];
+      return memo;
+    }, {});
+
+    //
+    // Introduce the bootstrap code for the framework. It kinda depends on the
+    // data that we already send in this bootstrap pagelet so we're going to
+    // pass the data in right away.
+    //
+    data.bootstrap = this._bigpipe._framework.get('bootstrap', data);
 
     //
     // Adds initial HTML headers to the queue. The first flush will
