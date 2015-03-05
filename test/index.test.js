@@ -1,7 +1,8 @@
 describe('Boostrap Pagelet', function () {
   'use strict';
 
-  var Bootstrapper = require('../')
+  var Framework = require('bigpipe.js')
+    , Bootstrapper = require('../')
     , Pagelet = require('pagelet')
     , Temper = require('temper')
     , assume = require('assume')
@@ -17,8 +18,11 @@ describe('Boostrap Pagelet', function () {
     });
 
     pipe = {
+      _framework: new Framework(),
       _compiler: {
-        page: function noop() { return ['stubbed deps'] }
+        page: function noop() {
+          return ['stubbed deps'];
+        }
       }
     };
 
