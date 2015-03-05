@@ -90,10 +90,10 @@ Pagelet.extend({
     var bootstrap = this
       , data = {};
 
-    this.keys.reduce(function reduce(memo, key) {
+    data = this.keys.reduce(function reduce(memo, key) {
       memo[key] = bootstrap[key];
       return memo;
-    }, {});
+    }, data);
 
     //
     // Introduce the bootstrap code for the framework. It kinda depends on the
