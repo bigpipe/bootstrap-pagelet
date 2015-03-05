@@ -300,7 +300,7 @@ Pagelet.extend({
     // Store the provided global dependencies.
     //
     if (options.dependencies.length) {
-      this.dependencies = this._pipe._compiler.page(this).join('');
+      this.dependencies = this._bigpipe._compiler.page(this).join('');
     }
 
     var req = options.req || {}
