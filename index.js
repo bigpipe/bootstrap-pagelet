@@ -81,7 +81,7 @@ Pagelet.extend({
   /**
    * Render the HTML template with the data provided. Temper provides a minimal
    * templater to handle data in HTML templates. Data has to be specifically
-   * provided, properties of `this` are not enumarable and would not be included.
+   * provided, properties of `this` are not enumerable and would not be included.
    *
    * @returns {Pagelet} this
    * @api public
@@ -104,7 +104,7 @@ Pagelet.extend({
 
     //
     // Adds initial HTML headers to the queue. The first flush will
-    // push out these headers immediatly. If the render mode is sync
+    // push out these headers immediately. If the render mode is sync
     // the headers will be injected with the other content.
     //
     this.debug('Queueing initial headers');
@@ -256,7 +256,7 @@ Pagelet.extend({
 
     //
     // Walk through the tree in reversed order to replace the data
-    // added in each view. This has to be done seperatly otherwise childs
+    // added in each view. This has to be done separately otherwise childs
     // at different branches might replace content in the wrong parent
     // due to name collisions.
     //
