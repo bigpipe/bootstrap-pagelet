@@ -12,7 +12,7 @@
   "dependencies": {
     "pagelet": "1.0.0-alpha",
     "querystring": "0.2.x",
-    "sapling": "0.0.x",
+    "sapling": "1.0.x",
     "t": "0.5.x"
   },
   "devDependencies": {
@@ -22,7 +22,7 @@
     "istanbul": "0.3.x",
     "mocha": "2.1.x",
     "pre-commit": "1.0.x",
-    "temper": "0.2.x"
+    "temper": "0.3.x"
   },
   "repository": {
     "type": "git",
