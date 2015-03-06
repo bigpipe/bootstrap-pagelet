@@ -81,21 +81,30 @@ Pagelet.extend({
   /**
    * Render the HTML template with the data provided. Temper provides a minimal
    * templater to handle data in HTML templates. Data has to be specifically
-   * provided, properties of `this` are not enumarable and would not be included.
+   * provided, properties of `this` are not enumerable and would not be included.
    *
    * @returns {Pagelet} this
    * @api public
    */
   render: function render() {
     var bootstrap = this
-      , data = this.keys.reduce(function reduce(memo, key) {
-          memo[key] = bootstrap[key];
-          return memo;
-        }, {});
+      , data = {};
+
+    data = this.keys.reduce(function reduce(memo, key) {
+      memo[key] = bootstrap[key];
+      return memo;
+    }, data);
+
+    //
+    // Introduce the bootstrap code for the framework. It kinda depends on the
+    // data that we already send in this bootstrap pagelet so we're going to
+    // pass the data in right away.
+    //
+    data.bootstrap = this._bigpipe._framework.get('bootstrap', data);
 
     //
     // Adds initial HTML headers to the queue. The first flush will
-    // push out these headers immediatly. If the render mode is sync
+    // push out these headers immediately. If the render mode is sync
     // the headers will be injected with the other content.
     //
     this.debug('Queueing initial headers');
@@ -247,7 +256,7 @@ Pagelet.extend({
 
     //
     // Walk through the tree in reversed order to replace the data
-    // added in each view. This has to be done seperatly otherwise childs
+    // added in each view. This has to be done separately otherwise childs
     // at different branches might replace content in the wrong parent
     // due to name collisions.
     //
@@ -282,17 +291,15 @@ Pagelet.extend({
    * @api public
    */
   constructor: function constructor(options) {
-    Pagelet.prototype.constructor.call(this, options);
-
     options = options || {};
-    options.dependencies = this.dependencies.concat(options.dependencies || []);
+    Pagelet.prototype.constructor.call(this, options);
 
     //
     // Store the provided global dependencies.
     //
-    if (options.dependencies.length) {
-      this.dependencies = this._pipe._compiler.page(this).join('');
-    }
+    this.dependencies = this._bigpipe._compiler.page(this).concat(
+      options.dependencies
+    ).join('');
 
     var req = options.req || {}
       , uri = req.uri || {}
