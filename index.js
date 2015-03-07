@@ -299,7 +299,9 @@ Pagelet.extend({
     //
     this.dependencies = this._bigpipe._compiler.page(this).concat(
       options.dependencies
-    ).join('');
+    ).filter(function (what, i, arr) {
+      return arr.indexOf(what) === i;
+    }).join('');
 
     var req = options.req || {}
       , uri = req.uri || {}
