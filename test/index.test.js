@@ -6,7 +6,7 @@ describe('Boostrap Pagelet', function () {
     , Pagelet = require('pagelet')
     , Temper = require('temper')
     , assume = require('assume')
-    , pagelet, P, pipe;
+    , pagelet, P, bigpipe;
 
   beforeEach(function () {
     P = Bootstrapper.extend({
@@ -17,7 +17,7 @@ describe('Boostrap Pagelet', function () {
       ]
     });
 
-    pipe = {
+    bigpipe = {
       _framework: new Framework(),
       _compiler: {
         page: function noop() {
@@ -26,7 +26,7 @@ describe('Boostrap Pagelet', function () {
       }
     };
 
-    pagelet = new P({ temper: new Temper, pipe: pipe });
+    pagelet = new P({ temper: new Temper, bigpipe: bigpipe });
   });
 
   afterEach(function each() {
@@ -79,7 +79,7 @@ describe('Boostrap Pagelet', function () {
   describe('#constructor', function () {
     it('sets amount of pagelets to be processed from options', function () {
       var amount = 7;
-      pagelet = new P({ temper: new Temper, length: amount, pipe: pipe });
+      pagelet = new P({ temper: new Temper, length: amount, bigpipe: bigpipe });
 
       assume(pagelet.length).to.equal(amount);
       assume(pagelet.length).to.be.a('number');
@@ -96,7 +96,7 @@ describe('Boostrap Pagelet', function () {
         '<meta http-equiv="refresh" content="0; URL=http://localhost/?no_pagelet_js=1">'
       );
 
-      pagelet = new P({ temper: new Temper, mode: 'sync', pipe: pipe });
+      pagelet = new P({ temper: new Temper, mode: 'sync', bigpipe: bigpipe });
       assume(pagelet.fallback).to.be.a('string');
       assume(pagelet.fallback).to.include(
         'if (~location.search.indexOf("no_pagelet_js=1"))location.href = location.href.replace(location.search, "")'
@@ -105,7 +105,7 @@ describe('Boostrap Pagelet', function () {
 
     it('provides the current pathname and querystring to the async fallback script', function () {
       pagelet = new P({
-        pipe: pipe,
+        bigpipe: bigpipe,
         temper: new Temper,
         req: {
           query: { test: 'req' },
@@ -138,7 +138,7 @@ describe('Boostrap Pagelet', function () {
     it('expects temper instance to be provided', function () {
       function notemper() {
         try {
-          var p = new P({ pipe: pipe });
+          var p = new P({ bigpipe: bigpipe });
           return p.render();
         } catch (e) {
           return e;
@@ -169,7 +169,7 @@ describe('Boostrap Pagelet', function () {
     it('will use the provided view', function () {
       pagelet = new (P.extend({
         view: 'fixtures/view.html'
-      }).on(module))({ temper: new Temper, pipe: pipe });
+      }).on(module))({ temper: new Temper, bigpipe: bigpipe });
 
       var html = pagelet.render()._queue[0].view;
 
@@ -393,7 +393,7 @@ describe('Boostrap Pagelet', function () {
 
     beforeEach(function () {
       pagelet = new P({
-        pipe: pipe,
+        bigpipe: bigpipe,
         temper: new Temper,
         res: {
           write: function (data, encoding, done) {
