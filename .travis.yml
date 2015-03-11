@@ -5,8 +5,9 @@ node_js:
   - "0.8"
   - "iojs"
 env:
-  global:
+  matrix:
     - "MASTER=false"
+    - "MASTER=true"
 before_install:
   - "npm install -g npm@2.1.18"
   - "npm config set loglevel error"
@@ -20,9 +21,6 @@ matrix:
   fast_finish: true
   allow_failures:
     - node_js: "iojs"
-    - env: "MASTER=true"
-  include:
-    - node_js: "0.10"
     - env: "MASTER=true"
 notifications:
   irc:
