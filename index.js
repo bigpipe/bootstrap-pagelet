@@ -87,7 +87,8 @@ Pagelet.extend({
    * @api public
    */
   render: function render() {
-    var bootstrap = this
+    var framework = this._bigpipe._framework
+      , bootstrap = this
       , data = {};
 
     data = this.keys.reduce(function reduce(memo, key) {
@@ -110,7 +111,13 @@ Pagelet.extend({
     this.debug('Queueing initial headers');
     this._queue.push({
       name: this.name,
-      view: this._temper.fetch(this.view).server(data)
+      view: framework.get('fragment', {
+        template: this._temper.fetch(this.view).server(data).replace(/<!--(.|\s)*?-->/, ''),
+        name: this.name,
+        id: this.id,
+        data: data,
+        state: {}
+      })
     });
 
     return this;
