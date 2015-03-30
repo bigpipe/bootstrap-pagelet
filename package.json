@@ -10,13 +10,13 @@
     "test-travis": "istanbul cover node_modules/.bin/_mocha --report lcovonly -- $(find test -name '*.test.js')"
   },
   "dependencies": {
-    "pagelet": "1.0.0-alpha",
+    "pagelet": "1.0.0-alpha-3",
     "querystring": "0.2.x",
     "sapling": "1.0.x",
     "t": "0.5.x"
   },
   "devDependencies": {
-    "assume": "1.1.x",
+    "assume": "1.2.x",
     "bigpipe.js": "0.9.x",
     "istanbul": "0.3.x",
     "mocha": "2.2.x",
