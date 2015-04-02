@@ -61,7 +61,21 @@ Pagelet.extend({
   robots: ['index', 'follow'],
   favicon: '/favicon.ico',
   author: 'BigPipe',
-  view: 'view.html',
+
+  //
+  // Introduce the bootstrap code for the framework. It kinda depends on the
+  // data that we already send in this bootstrap pagelet so we're going to
+  // pass the data in right away.
+  //
+  get view() {
+    var framework = this._bigpipe._framework
+      , bootstrap = this;
+
+    return framework.get('bootstrap', this.keys.reduce(function reduce(memo, key) {
+      memo[key] = bootstrap[key];
+      return memo;
+    }, {}));
+  },
 
   //
   // Used for proper client side library initialization. Overrules the
@@ -107,37 +121,16 @@ Pagelet.extend({
    * @api public
    */
   render: function render() {
-    var framework = this._bigpipe._framework
-      , bootstrap = this
-      , data = {};
-
-    data = this.keys.reduce(function reduce(memo, key) {
-      memo[key] = bootstrap[key];
-      return memo;
-    }, data);
-
-    //
-    // Introduce the bootstrap code for the framework. It kinda depends on the
-    // data that we already send in this bootstrap pagelet so we're going to
-    // pass the data in right away.
-    //
-    data.bootstrap = this._bigpipe._framework.get('bootstrap', data);
+    this.debug('Queueing initial headers');
 
     //
     // Adds initial HTML headers to the queue. The first flush will
     // push out these headers immediately. If the render mode is sync
     // the headers will be injected with the other content.
     //
-    this.debug('Queueing initial headers');
     this._queue.push({
       name: this.name,
-      view: framework.get('fragment', {
-        template: this._temper.fetch(this.view).server(data).replace(/<!--(.|\s)*?-->/, ''),
-        name: this.name,
-        id: this.id,
-        data: data,
-        state: {}
-      })
+      view: this.view
     });
 
     return this;
