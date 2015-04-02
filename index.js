@@ -62,7 +62,6 @@ Pagelet.extend({
   favicon: '/favicon.ico',
   author: 'BigPipe',
   view: 'view.html',
-  charset: 'UTF-8',
 
   //
   // Used for proper client side library initialization. Overrules the
@@ -75,8 +74,29 @@ Pagelet.extend({
   //
   keys: [
     'title', 'description', 'keywords', 'robots', 'favicon', 'author',
-    'dependencies', 'fallback', 'charset', '_child', 'length', 'id'
+    'dependencies', 'fallback', 'charset', 'child', 'length', 'id'
   ],
+
+  /**
+   * Get the value of the child's name.
+   *
+   * @return {String} Child's name
+   * @api private
+   */
+  get child() {
+    return this._child;
+  },
+
+  /**
+   * Set the value of the child's name, only allows strings.
+   *
+   * @param {String} value Child's name.
+   * @api private
+   */
+  set child(value) {
+    if ('string' !== typeof value) return;
+    this._child = value;
+  },
 
   /**
    * Render the HTML template with the data provided. Temper provides a minimal
@@ -325,7 +345,7 @@ Pagelet.extend({
     // Prepare several properties that are used to render the HTML fragment.
     //
     this.length = options.length || 0;
-    this._child = options.child || 'root';
+    this.child = options.child || 'root';
     this.once('contentType', this.contentTypeHeader, this);
 
     //
