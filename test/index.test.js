@@ -68,10 +68,11 @@ describe('Boostrap Pagelet', function () {
 
   it('has set of default keys that will be used by #render', function () {
     assume(pagelet.keys).to.be.an('array');
-    assume(pagelet.keys.length).to.equal(12);
+    assume(pagelet.keys.length).to.equal(13);
     assume(pagelet.keys).to.include('dependencies');
     assume(pagelet.keys).to.include('child');
     assume(pagelet.keys).to.include('length');
+    assume(pagelet.keys).to.include('name');
     assume(pagelet.keys).to.include('id');
   });
 
