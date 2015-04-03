@@ -73,7 +73,7 @@ Pagelet.extend({
   //
   keys: [
     'title', 'description', 'keywords', 'robots', 'favicon', 'author',
-    'dependencies', 'fallback', 'charset', 'child', 'length', 'id'
+    'dependencies', 'fallback', 'charset', 'child', 'length', 'id', 'name'
   ],
 
   /**
