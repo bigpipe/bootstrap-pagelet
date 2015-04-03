@@ -3,6 +3,7 @@ describe('Boostrap Pagelet', function () {
 
   var Framework = require('bigpipe.js')
     , Bootstrapper = require('../')
+    , BigPipe = require('bigpipe')
     , Pagelet = require('pagelet')
     , Temper = require('temper')
     , assume = require('assume')
@@ -17,12 +18,10 @@ describe('Boostrap Pagelet', function () {
       ]
     });
 
-    bigpipe = {
-      _framework: new Framework(),
-      _compiler: {
-        page: function noop() {
-          return ['stubbed deps'];
-        }
+    bigpipe = new BigPipe;
+    bigpipe._compiler = {
+      page: function noop() {
+        return ['stubbed deps'];
       }
     };
 
@@ -60,7 +59,11 @@ describe('Boostrap Pagelet', function () {
     assume(pagelet.robots.join()).to.equal('index,follow');
     assume(pagelet.favicon).to.equal('/favicon.ico');
     assume(pagelet.author).to.equal('BigPipe');
-    assume(pagelet.view).to.equal(process.cwd() + '/view.html');
+  });
+
+  it('has no view property', function () {
+    assume(pagelet.view).to.equal(null);
+    assume(pagelet.view).to.not.equal(process.cwd() + '/view.html');
   });
 
   it('has set of default keys that will be used by #render', function () {
@@ -135,8 +138,10 @@ describe('Boostrap Pagelet', function () {
       assume(pagelet._queue[0].view).to.include('<meta charset="UTF-8">');
     });
 
-    it('expects temper instance to be provided', function () {
-      function notemper() {
+    it('expects framework instance to be provided', function () {
+      delete bigpipe._framework;
+
+      function noframework() {
         try {
           var p = new P({ bigpipe: bigpipe });
           return p.render();
@@ -145,15 +150,18 @@ describe('Boostrap Pagelet', function () {
         }
       }
 
-      var result = notemper();
+      var result = noframework();
       assume(result).to.be.instanceof(Error);
-      assume(result.message).to.include("'fetch' of undefined");
+      assume(result.message).to.include("'get' of undefined");
     });
 
     it('uses default set of keys to replace encapsulated data', function () {
-      pagelet.keys = pagelet.keys.filter(function (key) { return key !== 'dependencies'; });
+      assume(pagelet.render()._queue[0].view).to.include('stubbed deps');
+    });
 
-      assume(pagelet.render()._queue[0].view).to.include('{dependencies}');
+    it('removes keys from the template that are missing', function () {
+      pagelet.keys = pagelet.keys.filter(function (key) { return key !== 'dependencies'; });
+      assume(pagelet.render()._queue[0].view).to.not.include('{fittings:dependencies}');
     });
 
     it('use the current values of keys', function () {
@@ -166,9 +174,14 @@ describe('Boostrap Pagelet', function () {
       assume(html).to.include('another id');
     });
 
-    it('will use the provided view', function () {
+    it('will use the provided view from the fittings framework', function () {
+      bigpipe._framework.bootstrap = require('fs').readFileSync(
+        __dirname + '/fixtures/view.html',
+        'utf-8'
+      );
+
       pagelet = new (P.extend({
-        view: 'fixtures/view.html'
+        title: 'Custom title'
       }).on(module))({ temper: new Temper, bigpipe: bigpipe });
 
       var html = pagelet.render()._queue[0].view;

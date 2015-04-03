@@ -1,6 +1,6 @@
 {
   "name": "bootstrap-pagelet",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Base Pagelet that is responsible for bootstrapping the client side of BigPipe",
   "main": "index.js",
   "scripts": {
@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "assume": "1.2.x",
+    "bigpipe": "0.9.x",
     "bigpipe.js": "0.9.x",
     "istanbul": "0.3.x",
     "mocha": "2.2.x",
