@@ -107,7 +107,13 @@ Pagelet.extend({
    */
   render: function render() {
     var framework = this._bigpipe._framework
-      , bootstrap = this;
+      , bootstrap = this
+      , data;
+
+    data = this.keys.reduce(function reduce(memo, key) {
+      memo[key] = bootstrap[key];
+      return memo;
+    }, {});
 
     //
     // Adds initial HTML headers to the queue. The first flush will
@@ -119,10 +125,13 @@ Pagelet.extend({
     this.debug('Queueing initial headers');
     this._queue.push({
       name: this.name,
-      view: framework.get('bootstrap', this.keys.reduce(function reduce(memo, key) {
-        memo[key] = bootstrap[key];
-        return memo;
-      }, {}))
+      view: framework.get('bootstrap', {
+        name: this.name,
+        template: '',
+        id: this.id,
+        data: data,
+        state: {}
+      })
     });
 
     return this;
