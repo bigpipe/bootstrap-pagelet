@@ -61,6 +61,7 @@ Pagelet.extend({
   robots: ['index', 'follow'],
   favicon: '/favicon.ico',
   author: 'BigPipe',
+  dependencies: [],
 
   //
   // Used for proper client side library initialization. Overrules the
@@ -319,9 +320,7 @@ Pagelet.extend({
     //
     this.dependencies = this._bigpipe._compiler.page(this).concat(
       options.dependencies
-    ).filter(function (what, i, arr) {
-      return arr.indexOf(what) === i;
-    }).join('');
+    );
 
     var req = options.req || {}
       , uri = req.uri || {}
