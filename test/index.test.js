@@ -1,7 +1,9 @@
 describe('Boostrap Pagelet', function () {
   'use strict';
 
-  var Framework = require('bigpipe.js')
+  var Collection = require('bigpipe/lib/collection')
+    , File = require('bigpipe/lib/file')
+    , Framework = require('bigpipe.js')
     , Bootstrapper = require('../')
     , BigPipe = require('bigpipe')
     , Pagelet = require('pagelet')
@@ -12,17 +14,24 @@ describe('Boostrap Pagelet', function () {
   beforeEach(function () {
     P = Bootstrapper.extend({
       description: 'my custom description',
-      dependencies: [
-        'http://code.jquery.com/jquery-2.0.0.js',
-        'fixtures/custom.js'
-      ]
+      _dependencies: {
+        'foreign': ['http://code.jquery.com/jquery-2.0.0.js'],
+        '.css': ['fixtures/custom.css']
+      }
     });
 
+    //
+    // Stub parts of the compiler to skip catalog/optimizing.
+    //
     bigpipe = new BigPipe;
-    bigpipe._compiler = {
-      page: function noop() {
-        return ['stubbed deps'];
-      }
+    bigpipe._compiler.alias = {
+      'http://code.jquery.com/jquery-2.0.0.js': 'file1',
+      'fixtures/custom.css': 'file2'
+    };
+
+    bigpipe._compiler.buffer = {
+      file1: new File(['stubbed buffer-1.js'], '.js'),
+      file2: new File(['stubbed buffer-2.js'], '.css')
     };
 
     pagelet = new P({ temper: new Temper, bigpipe: bigpipe });
@@ -90,8 +99,8 @@ describe('Boostrap Pagelet', function () {
     });
 
     it('resolves dependencies', function () {
-      assume(pagelet.dependencies).to.be.a('string');
-      assume(pagelet.dependencies).to.equal('stubbed deps');
+      assume(pagelet.dependencies).to.be.instanceof(Collection);
+      assume(pagelet.dependencies.stack).to.be.an('array');
     });
 
     it('sets the correct fallback script', function () {
@@ -157,12 +166,17 @@ describe('Boostrap Pagelet', function () {
     });
 
     it('uses default set of keys to replace encapsulated data', function () {
-      assume(pagelet.render()._queue[0].view).to.include('stubbed deps');
+      assume(pagelet.render()._queue[0].view).to.include('<title>BigPipe</title>');
     });
 
-    it('removes keys from the template that are missing', function () {
-      pagelet.keys = pagelet.keys.filter(function (key) { return key !== 'dependencies'; });
-      assume(pagelet.render()._queue[0].view).to.not.include('{fittings:dependencies}');
+    it('renders the dependencies from the collection', function () {
+      assume(pagelet.render()._queue[0].view).to.include(
+        '<link rel=stylesheet href="/da39a3ee5e6b4b0d3255bfef95601890afd80709.css" />'
+      );
+
+      assume(pagelet.render()._queue[0].view).to.include(
+       '<script src="/da39a3ee5e6b4b0d3255bfef95601890afd80709.js"></script>'
+      );
     });
 
     it('use the current values of keys', function () {
