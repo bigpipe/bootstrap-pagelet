@@ -9,7 +9,7 @@
 
 This Pagelet is responsible for bootstrapping the client side
 of BigPipe and keeping state on the child pagelet queue. By default
-the Bootstrap Pagelet is provided with [BigPipe]. However, if you
+the Bootstrap Pagelet is provided with BigPipe. However, if you
 require a custom Bootstrap you can extend this Pagelet.
 
 ## Installation
@@ -22,13 +22,7 @@ npm install --save bootstrap-pagelet
 
 ## Support
 
-Got stuck? Or can't wrap your head around a concept or just want some feedback,
-we got a dedicated IRC channel for that on Freenode:
-
-- **IRC Server**: `irc.freenode.net`
-- **IRC Room**: `#bigpipe`
-
-Still stuck? Create an issue. Every question you have is a bug in our
+Create an issue. Every question you have is a bug in our
 documentation and that should be corrected. So please, don't hesitate to create
 issues, many of them.
 
@@ -36,8 +30,8 @@ issues, many of them.
 
 In this example the Bootstrap Pagelet is extended with a custom view.
 For instance, if you want to use a custom layout or have several repeating
-pagelets that always need to be added. [BigPipe] will automatically
-discover this extended version if it is provided to [BigPipe] alongside
+pagelets that always need to be added. BigPipe will automatically
+discover this extended version if it is provided to BigPipe alongside
 the other pagelets.
 
 ```js
@@ -69,7 +63,7 @@ only used internally. There is rarely a reason to call these methods.
 
 The bootstrap constructor expects several options to be provided, these
 include: `queue`, `mode`, `req`, `res` and `pipe`. The last option is
-a reference to the [BigPipe] instance, mainly to ensure the same [Temper]
+a reference to the BigPipe instance, mainly to ensure the same [Temper]
 instance is re-used. All code examples assume your file is setup as:
 
 ```js
@@ -147,7 +141,6 @@ npm run coverage
 
 Bootstrap-pagelet is released under MIT.
 
-[BigPipe]: http://bigpipe.io/
 [Travis CI]: http://travisci.org
 [Temper]: http://github.com/bigpipe/temper
 [pre-commit]: http://github.com/observing/pre-commit
